@@ -1,0 +1,116 @@
+{
+  "dataset": "public-development",
+  "platform": "macOS-12.7.6-x86_64-i386-64bit",
+  "words": 35267,
+  "matches": 13999,
+  "accuracy_A": 0.39694331811608585,
+  "wall_seconds_T": 14.127070810995065,
+  "peak_rss_mib": 83.73828125,
+  "correct_word_preservation": 0.8666666666666667,
+  "misspelling_accuracy": 0.39594225960445556,
+  "valid": true,
+  "errors": [],
+  "points": null,
+  "mismatches_sample": [
+    {
+      "input": "ab",
+      "expected": "albert",
+      "actual": "ab"
+    },
+    {
+      "input": "badcock",
+      "expected": "badcock's",
+      "actual": "back"
+    },
+    {
+      "input": "botuania",
+      "expected": "botswana",
+      "actual": "botuania"
+    },
+    {
+      "input": "canda",
+      "expected": "canada",
+      "actual": "candy"
+    },
+    {
+      "input": "chactuquoe",
+      "expected": "chautauqua",
+      "actual": "chactuquoe"
+    },
+    {
+      "input": "chalktwa",
+      "expected": "chautauqua",
+      "actual": "chalktwa"
+    },
+    {
+      "input": "chaqua",
+      "expected": "chautauqua",
+      "actual": "cheque"
+    },
+    {
+      "input": "chata",
+      "expected": "chautauqua",
+      "actual": "chat"
+    },
+    {
+      "input": "chatacqua",
+      "expected": "chautauqua",
+      "actual": "chatacqua"
+    },
+    {
+      "input": "chatacque",
+      "expected": "chautauqua",
+      "actual": "chatacque"
+    },
+    {
+      "input": "chatalkwa",
+      "expected": "chautauqua",
+      "actual": "chatalkwa"
+    },
+    {
+      "input": "chataqua",
+      "expected": "chautauqua",
+      "actual": "chateau"
+    },
+    {
+      "input": "chataque",
+      "expected": "chautauqua",
+      "actual": "chateau"
+    },
+    {
+      "input": "chataukowa",
+      "expected": "chautauqua",
+      "actual": "chataukowa"
+    },
+    {
+      "input": "chataukwa",
+      "expected": "chautauqua",
+      "actual": "chataukwa"
+    },
+    {
+      "input": "chatauwkwa",
+      "expected": "chautauqua",
+      "actual": "chatauwkwa"
+    },
+    {
+      "input": "chateau",
+      "expected": "chautauqua",
+      "actual": "chateau"
+    },
+    {
+      "input": "chatocqua",
+      "expected": "chautauqua",
+      "actual": "chatocqua"
+    },
+    {
+      "input": "chatogua",
+      "expected": "chautauqua",
+      "actual": "chateau"
+    },
+    {
+      "input": "chatoukouv",
+      "expected": "chautauqua",
+      "actual": "chatoukouv"
+    }
+  ]
+}

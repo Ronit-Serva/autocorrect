@@ -1,0 +1,116 @@
+{
+  "dataset": "synthetic-10000",
+  "platform": "macOS-12.7.6-x86_64-i386-64bit",
+  "words": 10000,
+  "matches": 8881,
+  "accuracy_A": 0.8881,
+  "wall_seconds_T": 1.6707393339893315,
+  "peak_rss_mib": 83.71875,
+  "correct_word_preservation": 1.0,
+  "misspelling_accuracy": 0.8249648052557484,
+  "valid": true,
+  "errors": [],
+  "points": null,
+  "mismatches_sample": [
+    {
+      "input": "discourecy",
+      "expected": "discourtesy",
+      "actual": "discourse"
+    },
+    {
+      "input": "reighy",
+      "expected": "weighty",
+      "actual": "right"
+    },
+    {
+      "input": "bieen",
+      "expected": "bien",
+      "actual": "been"
+    },
+    {
+      "input": "excid",
+      "expected": "excite",
+      "actual": "exceed"
+    },
+    {
+      "input": "gottx",
+      "expected": "gotten",
+      "actual": "got"
+    },
+    {
+      "input": "aspu",
+      "expected": "apsu",
+      "actual": "asp"
+    },
+    {
+      "input": "mani",
+      "expected": "manic",
+      "actual": "many"
+    },
+    {
+      "input": "levail",
+      "expected": "prevail",
+      "actual": "level"
+    },
+    {
+      "input": "latus",
+      "expected": "flatus",
+      "actual": "lotus"
+    },
+    {
+      "input": "reovery",
+      "expected": "recovery",
+      "actual": "revery"
+    },
+    {
+      "input": "payay",
+      "expected": "payday",
+      "actual": "pay"
+    },
+    {
+      "input": "pevision",
+      "expected": "prevision",
+      "actual": "revision"
+    },
+    {
+      "input": "rantan",
+      "expected": "rattan",
+      "actual": "fantan"
+    },
+    {
+      "input": "zzzed",
+      "expected": "fuzzed",
+      "actual": "zed"
+    },
+    {
+      "input": "cag",
+      "expected": "camp",
+      "actual": "can"
+    },
+    {
+      "input": "cowaxd",
+      "expected": "cowhand",
+      "actual": "coward"
+    },
+    {
+      "input": "zair",
+      "expected": "zaire",
+      "actual": "air"
+    },
+    {
+      "input": "caddt",
+      "expected": "caddis",
+      "actual": "cat"
+    },
+    {
+      "input": "castross",
+      "expected": "castroism",
+      "actual": "castro"
+    },
+    {
+      "input": "gaue",
+      "expected": "ague",
+      "actual": "game"
+    }
+  ]
+}

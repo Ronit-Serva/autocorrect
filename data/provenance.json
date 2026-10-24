@@ -1,0 +1,10 @@
+{
+  "entries": 85030,
+  "wordnet_version": "3.0",
+  "wordnet_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59",
+  "webster_sha256": "69d1a74371b98676d3312727115b13fefaf57d561561b6ee347d13b1eea0d0c9",
+  "frequency_sha256": null,
+  "words_sha256": "3a8b92d379719ea23f1c2e6f4264d3a7cf5b7410954abe974697075983377f37",
+  "weight": "1 + WordNet gloss token count + 10 * WordNet tagged sense count",
+  "note": "Weights are a hand-selected count heuristic, not general-English corpus frequencies. Optional external counts replace weights for matching entries."
+}

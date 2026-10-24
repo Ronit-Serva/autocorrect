@@ -1,0 +1,37 @@
+#define main autocorrect_cli_main
+#include "../src/autocorrect.cpp"
+#undef main
+#include <cassert>
+
+int main() {
+    using namespace ac;
+    assert(distance("", "abc") == 3);
+    assert(distance("planet", "plnaet") == 1);
+    assert(distance("kitten", "sitting") == 3);
+    assert(distance("abcd", "badc") == 2);
+    assert(weighted_distance("alphabet", "alfabet") < distance("alphabet", "alfabet"));
+    assert(weighted_distance("garden", "garrden") < 1);
+    assert(weighted_distance("can't", "cant") < 1);
+    assert(phonetic("phone") == phonetic("fone"));
+    assert(phonetic(string(64, 'x')).size() <= MAX_WORD);
+    assert(distance(phonetic(string(64, 'x')), phonetic(string(64, 'y'))) >= 0);
+    assert(deletes("aaa", 2).size() == 3);
+    // Exhaustively verify two-edit candidate retrieval on a small alphabet,
+    // including edits around the seven-character index prefix boundary.
+    std::vector<string> words;
+    for (int n = 4; n <= 8; ++n) for (int bits = 0; bits < (1 << n); ++bits) {
+        string s(n, 'a');
+        for (int i = 0; i < n; ++i) if (bits & (1 << i)) s[i] = 'b';
+        words.push_back(s);
+    }
+    std::vector<std::vector<uint64_t>> keys;
+    for (const auto& w : words) keys.push_back(deletes(w.substr(0, PREFIX), 2));
+    for (size_t i = 0; i < words.size(); ++i) for (size_t j = i; j < words.size(); ++j) {
+        if (distance(words[i], words[j]) <= 2) {
+            std::vector<uint64_t> intersection;
+            std::set_intersection(keys[i].begin(), keys[i].end(), keys[j].begin(), keys[j].end(), std::back_inserter(intersection));
+            assert(!intersection.empty());
+        }
+    }
+    std::cout << "Unit checks passed\n";
+}

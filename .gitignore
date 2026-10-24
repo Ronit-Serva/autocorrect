@@ -1,0 +1,6 @@
+/autocorrect
+/build/
+/data/index.bin
+/dist/
+__pycache__/
+*.pyc

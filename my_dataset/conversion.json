@@ -1,0 +1,15 @@
+{
+  "source": "my_dataset/source.txt",
+  "input": "my_dataset/input.txt",
+  "expected": "my_dataset/expected.txt",
+  "reference_groups": 6136,
+  "source_lines": 42269,
+  "usable_pairs": 35267,
+  "skipped_groups_invalid_reference": 183,
+  "skipped_variants_invalid_reference": 297,
+  "skipped_variants_invalid_word": 569,
+  "skipped_total_variants": 866,
+  "identity_pairs_after_lowercasing": 75,
+  "normalization": "lowercase; entries containing characters other than ASCII letters and apostrophes are omitted; source preserved unchanged",
+  "note": "Repeated misspellings attached to different references are retained as separate rows. Context-free predictions can only match one target for a repeated input."
+}

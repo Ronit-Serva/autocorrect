@@ -1,0 +1,116 @@
+{
+  "dataset": "public-development",
+  "platform": "macOS-12.7.6-x86_64-i386-64bit",
+  "words": 2000,
+  "matches": 1452,
+  "accuracy_A": 0.726,
+  "wall_seconds_T": 1.5930039189988747,
+  "peak_rss_mib": 83.13671875,
+  "correct_word_preservation": 0.7025,
+  "misspelling_accuracy": 0.731875,
+  "valid": true,
+  "errors": [],
+  "points": null,
+  "mismatches_sample": [
+    {
+      "input": "inputes",
+      "expected": "inputs",
+      "actual": "input"
+    },
+    {
+      "input": "sackfulls",
+      "expected": "sackfuls",
+      "actual": "sackful"
+    },
+    {
+      "input": "reched",
+      "expected": "reached",
+      "actual": "rushed"
+    },
+    {
+      "input": "ivery",
+      "expected": "ivory",
+      "actual": "every"
+    },
+    {
+      "input": "sofas",
+      "expected": "sofas",
+      "actual": "sofa"
+    },
+    {
+      "input": "meters",
+      "expected": "meters",
+      "actual": "matters"
+    },
+    {
+      "input": "tunes",
+      "expected": "tunes",
+      "actual": "tunis"
+    },
+    {
+      "input": "containants",
+      "expected": "contaminants",
+      "actual": "continent"
+    },
+    {
+      "input": "consultedd",
+      "expected": "consulted",
+      "actual": "consult"
+    },
+    {
+      "input": "meanings",
+      "expected": "meanings",
+      "actual": "meaning"
+    },
+    {
+      "input": "guidlines",
+      "expected": "guidelines",
+      "actual": "guidlines"
+    },
+    {
+      "input": "trancending",
+      "expected": "transcending",
+      "actual": "transcendent"
+    },
+    {
+      "input": "proviskioning",
+      "expected": "provisioning",
+      "actual": "proviskioning"
+    },
+    {
+      "input": "spund",
+      "expected": "spun",
+      "actual": "spend"
+    },
+    {
+      "input": "disks",
+      "expected": "disks",
+      "actual": "disk"
+    },
+    {
+      "input": "boaring",
+      "expected": "boring",
+      "actual": "bearing"
+    },
+    {
+      "input": "halls",
+      "expected": "halls",
+      "actual": "hills"
+    },
+    {
+      "input": "royals",
+      "expected": "royals",
+      "actual": "royal"
+    },
+    {
+      "input": "priting",
+      "expected": "printing",
+      "actual": "writing"
+    },
+    {
+      "input": "vichor",
+      "expected": "victor",
+      "actual": "ichor"
+    }
+  ]
+}
