@@ -3,15 +3,15 @@
   "command": [
     "autocorrect"
   ],
-  "executable_sha256": "7deefafc1059f3aa0b34d74de2540965a8463287ffaf35a5e40f9e029d0328e7",
+  "executable_sha256": "d3834b28a475931062cc86751f6eaaf44aac0a0d4f29f2940718ee87217d014d",
   "input_sha256": "0d411836a437a2b6e11faab405288097cb6d71b7471f53fceebb982e20ba3872",
   "expected_sha256": "e38117aadd638b5f66f632e255bad0885ae9a9e69fdf321684ee40fe2440bc77",
   "platform": "macOS-12.7.6-x86_64-i386-64bit",
   "words": 2000,
   "matches": 1828,
   "accuracy_A": 0.914,
-  "wall_seconds_T": 1.1411399909993634,
-  "peak_rss_mib": 162.16015625,
+  "wall_seconds_T": 1.224634308979148,
+  "peak_rss_mib": 162.18359375,
   "correct_word_preservation": 0.9575,
   "misspelling_accuracy": 0.903125,
   "valid": true,

@@ -77,6 +77,11 @@ class CLITest(unittest.TestCase):
         self.assertIn('plnaet\tplanet\t', proc.stdout)
         self.assertIn('garden\tgarden\tdictionary word: preserved', proc.stdout)
 
+    def test_wide_search_option_runs(self):
+        proc = self.run_cli('plnaet\nskool\n', '--wide')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, 'planet\nschool\n')
+
     def test_missing_and_corrupt_index_fail_on_stderr(self):
         for contents in (b'', b'ACIDX003' + b'\xff' * 20, self.index.read_bytes()[:-1]):
             broken = self.directory / 'broken.bin'

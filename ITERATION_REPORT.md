@@ -163,6 +163,6 @@ Historical executables and intermediate dictionaries remain under ignored
 dictionary and base dictionary are bundled. Runtime remains entirely offline.
 Tests cover core distances, phonetic/index consistency, position-restricted
 rules, morphology exceptions, CLI validation, and preservation of all bundled
-words. The unit suite and twelve Python tests passed on macOS. Linux has not
+words. The unit suite and thirteen Python tests passed on macOS. Linux has not
 been executed here. Timings are local single-run observations and are affected
 by machine load; no statistical runtime superiority is claimed.

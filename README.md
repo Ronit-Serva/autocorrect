@@ -59,8 +59,8 @@ Final default runs on macOS 12.7.6 x86-64:
 
 | Dataset | Correct | Accuracy | Wall time | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Hackathon | 1,828 / 2,000 | 91.40% | 1.14 s | 162.16 MiB |
-| Birkbeck | 14,412 / 35,267 | 40.865% | 11.70 s | 164.88 MiB |
+| Hackathon | 1,828 / 2,000 | 91.40% | 1.22 s | 162.18 MiB |
+| Birkbeck | 14,412 / 35,267 | 40.865% | 10.89 s | 164.92 MiB |
 
 Hackathon clean-input preservation improved from 70.25% to **95.75%**;
 misspelling accuracy improved from 73.1875% to **90.3125%**. There were 415 newly

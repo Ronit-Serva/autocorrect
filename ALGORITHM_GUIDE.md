@@ -19,6 +19,45 @@ conservative inflection weights, and the ranking configuration below. Known
 words remain unchanged. Experimental modes are optional and must be measured
 before enabling them. The source is authoritative for option defaults.
 
+### Final release run record
+
+The release measurements below were made sequentially on macOS 12.7.6
+(x86_64), with the same final executable (`d3834b28a475931062cc86751f6eaaf44aac0a0d4f29f2940718ee87217d014d`).
+They include process startup and index loading. Treat timings as local
+single-run observations, not a general performance guarantee.
+
+| Dataset | Exact matches | Accuracy | Clean-word preservation | Misspelling accuracy | Time | Peak RSS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Hackathon public development | 1,828 / 2,000 | 91.400% | 95.750% | 90.313% | 1.225 s | 162.18 MiB |
+| Birkbeck native-speaker aggregate | 14,412 / 35,267 | 40.865% | 98.667% | 40.742% | 10.886 s | 164.92 MiB |
+
+The run artifacts record SHA-256 hashes for the executable, input, and
+reference files. Hackathon input/reference hashes are respectively
+`0d411836a437a2b6e11faab405288097cb6d71b7471f53fceebb982e20ba3872` and
+`e38117aadd638b5f66f632e255bad0885ae9a9e69fdf321684ee40fe2440bc77`;
+Birkbeck hashes are
+`b4f03feea80de8af024610a8ef79a02b58d3bbdaf00ff779988b2a07c5e3717c` and
+`020ba42d8703fadd3dcb263b044a6e6b2bda42e5584209169699a9ce26601bd1`.
+See `results/public-development.json` and `results/birkbeck-final.json` for
+the complete machine-readable records and sampled errors.
+
+The final hackathon error audit has 172 errors: 125 ranking errors, 28 targets
+outside the dictionary, 17 already-known inputs preserved unchanged, one
+abstention, and one candidate retrieval/filter failure. For Birkbeck, the
+audited categories are 7,989 ranking errors, 7,634 retrieval/filter failures,
+4,153 known-word-preservation errors, 365 missing-vocabulary errors, and 714
+abstentions. Birkbeck's deterministic input-only ceiling is 94.1106% because
+some identical inputs have different references. These categories and
+target-candidate traces are in `results/iterations/*-final-analysis.json`;
+they help distinguish dictionary coverage, retrieval, ranking, and the
+context-free task limit.
+
+The optional wide-search experiment is not the shipped default. The measured
+`--wide --edit-weight .25` combination reached 91.25% on hackathon and 41.387%
+on Birkbeck. It trades 3 hackathon answers for 184 additional Birkbeck answers
+relative to default and is substantially slower on Birkbeck. Exact paired
+configuration records are in `results/iterations/summary.json`.
+
 ## Project at a glance
 
 The program is a deterministic, offline, single-token English spelling
