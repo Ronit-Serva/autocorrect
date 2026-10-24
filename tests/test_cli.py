@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import struct
 from pathlib import Path
 import subprocess
 import tempfile
@@ -50,12 +51,46 @@ class CLITest(unittest.TestCase):
         self.assertIn('weighted_cost', proc.stdout)
 
     def test_index_encoder_modes(self):
-        for mode in ('--build-index-enhanced', '--build-index-refined'):
+        for mode in ('--build-index-enhanced', '--build-index-refined', '--build-index-compact'):
             index = self.directory / (mode + '.bin')
             subprocess.run([str(EXE), mode, str(self.lexicon), str(index)], check=True, capture_output=True)
             proc = self.run_cli('skool\nfonetik\n', '--index', str(index))
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout, 'school\nphonetic\n')
+
+    def test_compact_and_original_contextual_indexes_have_identical_traces(self):
+        text = "plnaet\ngarrden\nskool\nfonetik\nplanet\ncan't\nzzzz\n"
+        traces = []
+        for mode in ('--build-index-enhanced', '--build-index-compact'):
+            index = self.directory / (mode + '.bin')
+            subprocess.run([str(EXE), mode, str(self.lexicon), str(index)], check=True, capture_output=True)
+            proc = self.run_cli(text, '--index', str(index), '--trace')
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            traces.append(proc.stdout)
+        self.assertEqual(*traces)
+
+    def test_compact_index_rejects_corrupt_offsets_ids_and_trailing_bytes(self):
+        index = self.directory / 'compact.bin'
+        subprocess.run([str(EXE), '--build-index-compact', str(self.lexicon), str(index)], check=True, capture_output=True)
+        data = index.read_bytes()
+        n, = struct.unpack_from('<I', data, 8)
+        at = 28
+        for _ in range(n):
+            word_len = data[at]
+            at += 5 + word_len
+            phone_len = data[at]
+            at += 1 + phone_len
+        groups, = struct.unpack_from('<Q', data, at)
+        offsets_bad = bytearray(data)
+        struct.pack_into('<I', offsets_bad, at + 8 + 8, 1)
+        ids_bad = bytearray(data)
+        struct.pack_into('<I', ids_bad, at + 8 + groups * 12, n)
+        for invalid in (offsets_bad, ids_bad, data + b'junk', data[:-1]):
+            broken = self.directory / 'broken-compact.bin'
+            broken.write_bytes(invalid)
+            proc = self.run_cli('planet\n', '--index', str(broken))
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertEqual(proc.stdout, '')
 
     def test_numeric_option_validation(self):
         for option, value in [('--edit-weight', 'nan'), ('--sound-weight', '-1'),
@@ -76,6 +111,27 @@ class CLITest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn('plnaet\tplanet\t', proc.stdout)
         self.assertIn('garden\tgarden\tdictionary word: preserved', proc.stdout)
+
+    def test_fast_prediction_matches_exhaustive_candidate_decisions(self):
+        words = set(['planet', 'garden', 'music', 'school', "can't", 'phonetic'])
+        for word in tuple(words):
+            for i in range(len(word)):
+                words.add(word[:i] + word[i + 1:])
+                words.add(word[:i] + 'a' + word[i:])
+                words.add(word[:i] + 'x' + word[i + 1:])
+                if i + 1 < len(word):
+                    words.add(word[:i] + word[i + 1] + word[i] + word[i + 2:])
+        text = '\n'.join(sorted(words)) + '\n'
+        for flags in [[], ['--wide'], ['--insertion-scale', '.75'],
+                      ['--edit-weight', '1'], ['--known-ratio', '10'],
+                      ['--vowel-weight', '.15']]:
+            fast = self.run_cli(text, *flags)
+            traced = self.run_cli(text, *flags, '--trace')
+            self.assertEqual(fast.returncode, 0, fast.stderr)
+            self.assertEqual(traced.returncode, 0, traced.stderr)
+            exhaustive = [line.split('\t')[1] for line in traced.stdout.splitlines()
+                          if not line.startswith('\t')]
+            self.assertEqual(fast.stdout.splitlines(), exhaustive)
 
     def test_wide_search_option_runs(self):
         proc = self.run_cli('plnaet\nskool\n', '--wide')

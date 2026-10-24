@@ -6,6 +6,15 @@ this implementation to the hackathon organizers. The implementation details
 and code snippets below are taken from `src/autocorrect.cpp` and the data
 generation tools. The source code is the final authority if a detail changes.
 
+**Submission status:** exploration has stopped. The previously best measured
+configuration is now the default: 75% insertion cost, bigram weight 0.5, and
+boundary-transposition exemptions. A fresh default run reproduced
+**92.20% (1,844/2,000)** on hackathon in **0.592206 seconds**.
+The 99% target was not reached. The unit checks and all 17 Python tests pass.
+The archive contains source and an offline build script; Linux execution has
+not been verified here. Earlier iteration measurements below are preserved as
+historical records.
+
 ## The problem in one sentence
 
 Given one possibly misspelled word, choose the intended word from a dictionary
@@ -248,6 +257,24 @@ The exact rules and costs are in `rules()`, `gap()`, and
 cost means “the system considers this edit more plausible,” not “this is
 linguistically proven.”
 
+The resumed work added a configurable **insertion scale**. When the writer omits
+a letter, the corrector has to insert it to recover the intended word. Setting
+`--insertion-scale .75` makes that operation cost 75% of its previous weighted
+cost. Deleting an extra input letter keeps its original cost. Ordinary edit
+distance stays unchanged, and multi-character spelling rules retain their
+listed costs. The submission default insertion scale is `.75`.
+
+The relevant dynamic-programming transition is:
+
+```cpp
+d[i][j - 1] + insertion_scale * gap(b, j - 1, spelling_costs)
+```
+
+Here `b` is the candidate word. Moving from its first `j-1` letters to its
+first `j` letters means inserting another candidate letter. This change helps
+counter the tendency to choose a shorter word when the writer actually left
+out a letter.
+
 ## 4. Combine evidence to rank candidates
 
 At this point the system has a list of plausible dictionary words. It computes
@@ -260,6 +287,7 @@ score = 0.5 * weighted spelling cost
       - 0.08 * log(1 + dictionary weight)
       + 0.25 if first letters differ
       + 0.15 if last letters differ
+      + 0.5 * letter-bigram distance
 ```
 
 This is a balance of evidence:
@@ -276,8 +304,50 @@ The dictionary weight is only a weak prior. It can also cause mistakes when a
 common wrong candidate competes with a rarer intended answer. That is visible
 in the failure report, for example `spund` where `spend` outranks `spun`.
 
-The exact implementation sorts by score, then breaks ties by larger dictionary
-weight, then alphabetically. This makes repeated runs deterministic.
+Candidates are ordered by score, then by larger dictionary weight, then
+alphabetically. Diagnostic mode sorts the full list; normal prediction now
+retains just the best two. Both use the same ordering.
+
+### Extra ranking evidence tested in the resumed campaign
+
+The best measured hackathon combination adds **letter-bigram similarity**. A
+bigram is a neighboring pair of letters:
+
+```text
+cart -> ca, ar, rt
+card -> ca, ar, rd
+```
+
+These words share two of three bigrams. The implementation sorts the bigrams
+and counts the shared occurrences, including repeated pairs. Its distance is:
+
+```text
+bigram_distance = 1 - 2 * shared_occurrences / (pairs_in_input + pairs_in_candidate)
+```
+
+For the example this is `1 - 4/6 = 1/3`. A smaller result means more letter
+fragments were preserved. The option `--ngram-weight .5` adds
+`0.5 * bigram_distance` to the normal score. This can distinguish candidates
+that have the same number of edits but preserve different parts of the input.
+The submission enables it by default (`--ngram-weight .5`).
+
+This excerpt shows how the sorted pair lists are compared:
+
+```cpp
+while (i < a.size() && j < b.size()) {
+    if (a[i] == b[j]) { ++common; ++i; ++j; }
+    else if (a[i] < b[j]) ++i;
+    else ++j;
+}
+```
+
+The same combination enables `--edge-transpositions`. Normally, changing the
+first or last letter incurs a boundary penalty. If the first two or last two
+letters are swapped, that option removes the corresponding boundary penalty:
+the transposition already has its own edit cost. This option is enabled in the submission default. On its own it lost one hackathon answer relative to the insertion
+experiment; combined with bigram ranking it gained one. That is an example of
+why combinations must be measured rather than assumed to add their individual
+gains.
 
 ## 5. Preserve safe inputs and abstain when unsure
 
@@ -334,6 +404,62 @@ index with one sound-key algorithm and accidentally querying it with another.
 The binary format uses explicit little-endian integers rather than writing
 compiler-specific in-memory structures directly.
 
+### What changed to reduce wall time
+
+The resumed implementation uses compact index header `ACIDX006`. The sound
+encoder remains the same contextual encoder. The previous format stored a
+hash beside every word ID. The compact format stores each distinct hash once,
+with offsets into a contiguous list of word IDs:
+
+```text
+Previous:   (hash A, word 1), (hash A, word 2), (hash A, word 3)
+Compact:    hash A -> start/end offsets -> [word 1, word 2, word 3]
+```
+
+The new index also stores the already-computed sound keys. It is about
+**36 MiB rather than 61 MiB** for the original 161,847-word dictionary. The
+loader validates the compact keys, offsets, IDs and file length. Older index
+formats remain supported. `./build.sh` now builds the compact format.
+
+The other speed changes avoid work without changing the intended scoring:
+
+1. **A flat dictionary lookup table.** Word IDs occupy a preallocated hash
+   table, avoiding an allocation for every dictionary word.
+2. **Bounded edit distance.** A candidate outside the allowed edit radius will
+   be rejected anyway. The dynamic program computes only the diagonal band
+   that could still fit inside that radius. Within the radius it returns the
+   exact OSA distance; outside it returns `cutoff + 1`.
+3. **Reuse distance rows.** Three row buffers rotate by swapping pointers,
+   rather than copying complete rows after every input character.
+4. **Letter-set rejection.** A bit mask records which letters a word contains.
+   If a candidate needs more distinct missing letters than the edit limit
+   permits, it is rejected before dynamic programming. One edit can introduce
+   at most one new letter, so this is a safe lower-bound check.
+5. **Keep the best two candidates.** Prediction needs the winner and runner-up
+   for the confidence margin. It does not need to sort every candidate.
+6. **Skip expensive scores that cannot enter the best two.** Weighted edit
+   costs are nonnegative. The other score terms therefore give a lower bound
+   on the final score. If that lower bound is already worse than the second
+   candidate, computing weighted distance cannot change the decision.
+
+The last idea appears in the implementation as:
+
+```cpp
+if (!exhaustive && candidates.size() == 2 &&
+    fixed_score > candidates[1].score + 1e-12) continue;
+```
+
+`fixed_score` includes every scoring term except weighted edit cost. The small
+epsilon protects comparisons near floating-point ties. `--trace` and
+`--explain` keep the full candidate computation so that debugging still shows
+the complete ranked list.
+
+Completed speed-only runs retained **1,828 hackathon** and **14,412 Birkbeck**
+correct answers. The later mask run observed 0.522 s / 7.358 s, compared with
+the previous release's 1.225 s / 10.886 s. Hackathon peak RSS fell from
+162.18 MiB to 83.66 MiB. These are saved single-run observations, not a
+controlled repeated timing benchmark or proof of minimum possible wall time.
+
 ## 7. One complete input, step by step
 
 Take an unknown input like `speling`:
@@ -346,7 +472,8 @@ Take an unknown input like `speling`:
 4. Compute raw spelling edits, sound-key edits and weighted spelling cost for
    each retrieved candidate.
 5. Drop candidates that fail length, edit and sound filters.
-6. Calculate the combined score and sort candidates.
+6. Calculate the combined score and retain the best two candidates.
+   Diagnostic mode sorts the full list instead.
 7. If the winner passes the confidence gate, emit it; otherwise emit `speling`
    unchanged.
 
@@ -361,7 +488,7 @@ equality. If there are 2,000 rows and 1,828 exact matches, accuracy is
 `1,828 / 2,000 = 91.4%`. It also reports clean-word preservation separately
 from misspelling accuracy, and records runtime, memory and file hashes.
 
-The final default run was:
+The previous release, before the resumed campaign, measured:
 
 | Dataset | Exact matches | Accuracy | Clean-word preservation | Typo accuracy | Runtime | Peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -369,18 +496,160 @@ The final default run was:
 | Birkbeck | 14,412 / 35,267 | 40.865% | 98.67% | 40.74% | 10.886 s | 164.92 MiB |
 
 The original implementation scored 72.60% on hackathon and 39.694% on
-Birkbeck. The final version fixes 415 hackathon rows that the original got
+Birkbeck. That release fixes 415 hackathon rows that the original got
 wrong, while regressing 39. **The 99% hackathon target was not reached.** Both
 datasets were used repeatedly for development and debugging, so these are
 development results, not an unbiased estimate of performance on unseen data.
 
-The hackathon final failures are mostly **ranking** failures: the intended
+The previous release's hackathon failure audit found mostly **ranking** failures: the intended
 candidate is present but another candidate wins. There are also missing
 dictionary words and a small number of known-word preservation, retrieval and
 confidence-gate failures. On Birkbeck, broader retrieval helps, but there are
 many extremely unusual errors and conflicting references. Because the program
 has no sentence context, the same input cannot be mapped correctly to two
 different targets; Birkbeck's input-only upper bound is 94.11%.
+
+## 8a. Resumed iteration record — stopped before 99%
+
+The resumed campaign completed **21 configurations on both datasets**. The
+highest hackathon score was **1,844/2,000 = 92.20%**. It used the original
+161,847-word dictionary and these flags, which are now the submission defaults:
+
+```sh
+./autocorrect --insertion-scale .75 --ngram-weight .5 --edge-transpositions \
+  < input.txt > output.txt
+```
+
+This combination fixes 33 hackathon rows that the previous 91.40% release got
+wrong, while regressing 17: a net improvement of 16 answers. Examples of fixes
+include `boaring -> boring`, `priting -> printing`, `thum -> thumb`, and
+`commerciasl -> commercials`. These examples illustrate the measured effects;
+they were not added as whole-word rules. The best combination still misses
+156 rows and would need **136 additional correct answers net** to reach 99%.
+
+| Best hackathon combination | Hackathon | Birkbeck |
+| --- | ---: | ---: |
+| Exact matches | 1,844 / 2,000 | 14,660 / 35,267 |
+| Accuracy | 92.200% | 41.569% |
+| Clean-word preservation | 95.750% | 98.667% |
+| Misspelling accuracy | 91.313% | 41.447% |
+| Observed wall time | 0.582 s | 7.285 s |
+| Observed peak RSS | 90.83 MiB | 93.50 MiB |
+
+Its saved executable SHA-256 is
+`981441a6370b10247a1d8c89770f2e0f610de4bcb42f0a91802c53ffeda267dc`.
+The historical run identifier was `resumed-ngrams-edges`. Its JSON reports
+were removed during submission cleanup; the table preserves their measured
+values. Fresh final reports with the same predictions are
+[the hackathon submission run](results/public-development.json) and
+[the Birkbeck submission run](results/birkbeck-final.json).
+
+```mermaid
+flowchart LR
+    A[Previous release: 91.40%] --> B[Speed changes: same accuracy]
+    B --> C[75% insertion cost: 91.85%]
+    C --> D[Add bigram similarity: 92.15%]
+    D --> E[Add boundary exemptions: 92.20%]
+```
+
+### All completed paired experiments
+
+The table preserves the 21 completed paired measurements. Their individual
+JSON reports were removed during submission cleanup. Run names identify the
+original experiments; local text prediction traces remain under
+`results/iterations/`. Hackathon has 2,000 rows and Birkbeck has 35,267 rows
+in every experiment.
+
+**Timing limitation:** these are individual local runs, and some earlier runs
+overlapped compilation or other experiments. The table records what happened;
+it does not establish a reliable ordering between close timing results. No
+repeated, controlled minimum-wall-time benchmark was completed before work
+stopped. The executable also changed during the speed work, so identical flags
+in different rows do not necessarily mean identical performance code.
+
+| Run and change | Hackathon correct | Birkbeck correct | Hackathon time | Birkbeck time |
+| --- | ---: | ---: | ---: | ---: |
+| `resumed-vocab` — Add independently ranked vocabulary; retain original weights | 1,823 (91.15%) | 14,236 (40.366%) | 1.104 s | 11.171 s |
+| `resumed-tv` — TV/film ranks combined with lexical weights | 1,792 (89.60%) | 14,038 (39.805%) | 2.073 s | 10.820 s |
+| `resumed-usage` — Wikipedia and TV/film ranks combined with lexical weights | 1,810 (90.50%) | 14,145 (40.108%) | 1.029 s | 10.614 s |
+| `resumed-usage-only` — Use independent usage ranks without original lexical weights | 1,780 (89.00%) | 13,628 (38.642%) | 1.318 s | 10.990 s |
+| `resumed-morph04` — Increase inflection weight floor to 40% | 1,825 (91.25%) | 14,378 (40.769%) | 1.568 s | 11.487 s |
+| `resumed-morph06` — Increase inflection weight floor to 60% | 1,824 (91.20%) | 14,362 (40.724%) | 1.009 s | 10.016 s |
+| `resumed-banded` — Bounded OSA distance; original index | 1,828 (91.40%) | 14,412 (40.865%) | 1.778 s | 9.776 s |
+| `resumed-compact` — Compact index and flat exact-word lookup | 1,828 (91.40%) | 14,412 (40.865%) | 1.125 s | 11.933 s |
+| `resumed-fast` — Keep best two; prune impossible weighted scores | 1,828 (91.40%) | 14,412 (40.865%) | 0.556 s | 7.538 s |
+| `resumed-masks` — Add distinct-letter rejection | 1,828 (91.40%) | 14,412 (40.865%) | 0.522 s | 7.358 s |
+| `resumed-insertion75` — Scale missing-letter insertions to 75% | 1,837 (91.85%) | 14,734 (41.778%) | 0.631 s | 7.684 s |
+| `resumed-insertion50` — Scale missing-letter insertions to 50% | 1,835 (91.75%) | 14,980 (42.476%) | 0.566 s | 7.620 s |
+| `resumed-insertion75-nosenseprior` — 75% insertions; remove lexical prior | 1,786 (89.30%) | 13,869 (39.326%) | 1.149 s | 9.309 s |
+| `resumed-insertion75-halfprior` — 75% insertions; halve lexical prior | 1,817 (90.85%) | 14,429 (40.914%) | 0.700 s | 8.108 s |
+| `resumed-insertion75-vowels` — 75% insertions; add vowel-signature distance | 1,825 (91.25%) | 14,563 (41.294%) | 0.655 s | 8.065 s |
+| `resumed-clean-morph75` — Conservative morphology; 75% insertions | 1,836 (91.80%) | 14,774 (41.892%) | 0.514 s | 6.774 s |
+| `resumed-clean-morph50` — Conservative morphology; 50% insertions | 1,836 (91.80%) | 15,026 (42.606%) | 0.509 s | 7.993 s |
+| `resumed-edges` — 75% insertions; exempt boundary transpositions | 1,836 (91.80%) | 14,722 (41.744%) | 0.524 s | 6.982 s |
+| `resumed-ngrams` — 75% insertions; add bigram distance | 1,843 (92.15%) | 14,677 (41.617%) | 0.569 s | 7.445 s |
+| `resumed-ngrams-edges` — 75% insertions, bigrams and boundary exemptions | 1,844 (92.20%) | 14,660 (41.569%) | 0.582 s | 7.285 s |
+| `resumed-clean-ngrams-edges` — Same combination with conservative morphology | 1,843 (92.15%) | 14,700 (41.682%) | 0.617 s | 7.048 s |
+
+### What the experiments taught us
+
+**Missing letters were being penalized too heavily.** The 75% insertion scale
+improved both datasets. A stronger 50% discount helped Birkbeck further but
+lost two hackathon answers relative to 75%. Very cheap insertions can make
+longer, unwanted candidates too attractive.
+
+**Letter fragments add useful information.** Bigram ranking improved the best
+hackathon combination, even though its Birkbeck score was lower than the
+insertion-only variant. Matching a broad sound key alone cannot tell us which
+candidate preserves the most actual letter sequences.
+
+**Better-sounding ideas can regress.** Replacing the lexical prior with the
+available usage ranks reduced hackathon accuracy. Removing or halving the
+prior also reduced accuracy. The vowel-signature experiment tried to preserve
+vowel distinctions lost by the broad phonetic encoder, but its measured
+combination was worse than insertion-only ranking.
+
+**A smaller dictionary has a different tradeoff.** Conservative morphology
+suppresses a second plural/comparative operation on already-inflected entries
+and avoids inventing regular plurals for proper nouns identified from WordNet
+capitalization. It produced 147,989 entries. With 50% insertion cost it achieved
+this campaign's highest Birkbeck score, **15,026/35,267 = 42.606%**, while scoring
+**91.80%** on hackathon. Its hackathon run observed 0.509 s and 78.32 MiB.
+This is a separate configuration, not the 92.20% combination.
+
+**New corpus-frequency data was not evaluated.** An attempted data import was
+interrupted when the user stopped exploration. It produced no completed
+correction run, no measured accuracy gain, and no change to the bundled
+lexicon. No result from it is included in the table.
+
+### What is actually enabled in the project
+
+`./build.sh` now builds the compact index, and the speed changes are present in
+`src/autocorrect.cpp`. The bundled dictionary remains the original 161,847-word
+release dictionary. For submission, default ranking was changed to insertion
+scale `.75`, bigram weight `.5`, vowel weight `0`, and boundary-transposition
+exemptions enabled. **The plain judge invocation now uses the 92.20%
+configuration; no extra flags are required.**
+
+The original baseline executable, index and dictionary were preserved under
+`build/iterations/resumed/baseline/`. Alternative dictionaries and independent
+source caches are under `build/iterations/resumed/`; those paths are ignored
+local experiment artifacts and are not submission dependencies.
+
+For submission preparation, the source was rebuilt and the complete core unit
+suite and all 17 Python tests passed. Fresh default predictions exactly match
+the selected experiment's saved outputs on both datasets. The public-development
+run recorded **A = 0.922** and **T = 0.592206 s**;
+Birkbeck recorded **41.569%** in **7.895524 s**.
+These new measurements are in `results/public-development.json` and
+`results/birkbeck-final.json`. These are the only retained JSON run results;
+historical comparisons are preserved in this document.
+
+The README describes the final build and run instructions. The submission
+archive includes source, an offline build script, dictionary notices, this guide
+and the two final reports, each with at most 20 mismatch samples. Obsolete JSON
+run reports were removed. Historical run timings above have not been replaced
+by the fresh submission timings.
 
 ## 9. What the system is—and is not
 
@@ -450,9 +719,12 @@ prints extra candidate rows.
 > weighted spelling changes, sound similarity, dictionary support, and small
 > word-boundary penalties. It preserves known words and leaves an uncertain
 > typo unchanged. The implementation is deterministic, offline, and does not
-> use a trained model or sentence context. On our 2,000-row public development
-> set it scored 91.4%, up from the original 72.6%; we did not reach our 99%
-> target, and the development set was used during iteration.
+> use a trained model or sentence context. Our best completed configuration
+> also uses letter-bigram similarity and a discount for missing-letter edits.
+> It scored 92.2% on the 2,000-row public development set, up from the original
+> 72.6%, with a fresh default wall time of 0.592 seconds. It requires
+> no extra flags in the submission. We did not reach
+> 99%, and the development set was used during iteration.
 
 ## Further reading in this repository
 
@@ -460,6 +732,5 @@ prints extra candidate rows.
   map.
 * `ITERATION_REPORT.md` — experiments, comparisons, failure causes, and why
   the final configuration was selected.
-* `results/iterations/hackathon-final-analysis.json` — candidate-level
-  hackathon failures.
-* `results/iterations/summary.json` — measured experiment configurations.
+* `results/public-development.json` — final public-development measurement.
+* `results/birkbeck-final.json` — final Birkbeck measurement.

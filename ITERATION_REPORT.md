@@ -1,5 +1,38 @@
 # Accuracy iteration report
 
+## Submission update after the resumed campaign
+
+The submission now enables the selected combination by default: insertion scale
+0.75, bigram weight 0.5 and boundary-transposition exemptions, with the original
+161,847-word dictionary and compact `ACIDX006` index. Speed changes use bounded
+OSA, a flat word lookup table, letter-set checks and safe best-two score pruning.
+Exploration has stopped; packaging does not add new algorithm experiments.
+
+| Dataset | Correct | Accuracy A | Fresh wall time T | Peak RSS |
+| --- | ---: | ---: | ---: | ---: |
+| Public development | 1,844 / 2,000 | 0.922 (92.20%) | 0.592206 s | 90.84 MiB |
+| Birkbeck | 14,660 / 35,267 | 0.415686 (41.569%) | 7.895524 s | 93.50 MiB |
+
+These are macOS 12.7.6 x86-64 measurements, not Linux measurements. Both
+predicted files exactly match the selected resumed experiment. Unit checks
+and all 17 Python tests pass; Linux execution has not been verified here.
+The 99% target remains unmet, and all accuracy figures are development results.
+
+The resumed campaign evaluated 21 paired configurations. Its best hackathon
+combination fixes 33 errors and regresses 17 compared with the previous release.
+The best Birkbeck experiment used a different 147,989-word dictionary and 50%
+insertion scale: 42.606% Birkbeck and 91.80% hackathon. It is not the submission.
+The attempted new frequency-source import never produced an evaluated result.
+
+`ALGORITHM.md` contains the complete resumed table and concept explanations.
+The campaign had 65 paired records including submission verification. Obsolete
+JSON run reports were removed during cleanup; this document and `ALGORITHM.md`
+preserve the comparisons. The two final reports are
+`results/public-development.json` and `results/birkbeck-final.json`.
+Older audit categories below remain historical.
+
+## Previous 43-configuration campaign (historical 91.40% release)
+
 The selected default reaches **91.40% (1,828/2,000)** on the supplied hackathon
 set and **40.865% (14,412/35,267)** on Birkbeck. The original implementation
 scored 72.60% and 39.694%. **The requested 99% hackathon accuracy was not
@@ -72,7 +105,8 @@ to be Double Metaphone.
 
 The steps above summarize useful combinations, not a claim that every individual
 change improves both datasets. Some changes interact. All paired results and
-command lines are recorded in `results/iterations/summary.json`.
+outcomes are preserved in the comparison tables here and in `ALGORITHM.md`.
+The historical JSON reports were removed during submission cleanup.
 
 The final ranking uses half raw OSA distance and half weighted edit distance,
 a 0.15 sound-distance term, a -0.08 log-count term, and 0.25/0.15 penalties for
@@ -151,12 +185,12 @@ compares references after collecting predictions, then requests candidate
 traces for the failed inputs. Each error records the target's rank and features,
 the top candidates, and the failure category.
 
-- `results/iterations/hackathon-final-analysis.json`: all remaining hackathon errors.
-- `results/iterations/birkbeck-final-analysis.json`: complete Birkbeck error audit.
-- `results/iterations/hackathon-changes.json`: 415 fixes and 39 regressions.
-- `results/iterations/summary.json`: every paired experiment.
-- `results/public-development.json` and `results/birkbeck-final.json`: compact final metrics.
+- `results/public-development.json` and `results/birkbeck-final.json`: final metrics.
 - `data/provenance.json`: generator settings and source/output hashes.
+- `ALGORITHM.md`: the resumed iteration table, including accuracy and timings.
+
+The older JSON audits, change lists and per-run reports were removed during
+submission cleanup. Their historical findings are retained in this document.
 
 Historical executables and intermediate dictionaries remain under ignored
 `build/iterations/`. They are not runtime dependencies. The final normalized

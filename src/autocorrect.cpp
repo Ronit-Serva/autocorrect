@@ -26,6 +26,8 @@ constexpr size_t PREFIX = 7;
 constexpr char MAGIC[] = "ACIDX003";
 constexpr char CONTEXT_MAGIC[] = "ACIDX004";
 constexpr char REFINED_MAGIC[] = "ACIDX005";
+constexpr char COMPACT_MAGIC[] = "ACIDX006";
+constexpr uint32_t NO_WORD = UINT32_MAX;
 using std::string;
 
 bool valid(const string& s) {
@@ -34,6 +36,52 @@ bool valid(const string& s) {
     return true;
 }
 bool vowel(char c) { return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'y'; }
+string vowel_signature(const string& s) {
+    string out;
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (!vowel(c)) continue;
+        if (c == 'e' && i + 1 == s.size() && i > 1 && !vowel(s[i - 1]) && !out.empty()) continue;
+        if (i + 1 < s.size()) {
+            const string pair = s.substr(i, 2);
+            if (pair == "oa" || pair == "au") { c = 'o'; ++i; }
+            else if (pair == "ee" || pair == "ie") { c = 'i'; ++i; }
+            else if (pair == "oo" || pair == "ou") { c = 'u'; ++i; }
+            else if (pair == "ai" || pair == "ay") { c = 'a'; ++i; }
+        }
+        if (c == 'y') c = 'i';
+        if (out.empty() || out.back() != c) out += c;
+    }
+    return out;
+}
+uint32_t letter_mask(const string& s) {
+    uint32_t mask = 0;
+    for (char c : s) mask |= uint32_t{1} << (c == '\'' ? 26 : c - 'a');
+    return mask;
+}
+bool too_many_missing_letters(uint32_t a, uint32_t b, int limit) {
+    uint32_t missing = a & ~b;
+    for (int count = 0; missing; ++count, missing &= missing - 1)
+        if (count >= limit) return true;
+    return false;
+}
+std::vector<uint16_t> bigrams(const string& s) {
+    std::vector<uint16_t> out;
+    if (s.size() > 1) out.reserve(s.size() - 1);
+    for (size_t i = 1; i < s.size(); ++i)
+        out.push_back(static_cast<uint16_t>((static_cast<unsigned char>(s[i - 1]) << 8) | static_cast<unsigned char>(s[i])));
+    std::sort(out.begin(), out.end());
+    return out;
+}
+double bigram_distance(const std::vector<uint16_t>& a, const std::vector<uint16_t>& b) {
+    size_t i = 0, j = 0, common = 0;
+    while (i < a.size() && j < b.size()) {
+        if (a[i] == b[j]) { ++common; ++i; ++j; }
+        else if (a[i] < b[j]) ++i;
+        else ++j;
+    }
+    return a.empty() && b.empty() ? 0. : 1. - 2. * common / (a.size() + b.size());
+}
 uint64_t hash(const string& s) {
     uint64_t h = 14695981039346656037ULL;
     for (unsigned char c : s) { h ^= c; h *= 1099511628211ULL; }
@@ -113,7 +161,8 @@ string contextual_phonetic(string s, bool refined = false) {
 
 // Optimal string alignment: Levenshtein edits plus adjacent transpositions.
 int distance(const string& a, const string& b) {
-    std::array<int, MAX_WORD + 1> prev2{}, prev{}, row{};
+    int storage[3][MAX_WORD + 1];
+    int *prev2 = storage[0], *prev = storage[1], *row = storage[2];
     for (size_t j = 0; j <= b.size(); ++j) prev[j] = static_cast<int>(j);
     for (size_t i = 1; i <= a.size(); ++i) {
         row[0] = static_cast<int>(i);
@@ -122,10 +171,39 @@ int distance(const string& a, const string& b) {
             if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1])
                 row[j] = std::min(row[j], prev2[j - 2] + 1);
         }
-        prev2 = prev;
-        prev = row;
+        std::swap(prev2, prev); std::swap(prev, row);
     }
     return prev[b.size()];
+}
+
+// Exact OSA distance inside a band; larger distances are reported as cutoff+1.
+// Filtering only needs to distinguish candidates inside the allowed radius.
+int bounded_distance(const string& a, const string& b, int cutoff) {
+    const int n = static_cast<int>(a.size()), m = static_cast<int>(b.size());
+    if (std::abs(n - m) > cutoff) return cutoff + 1;
+    const int inf = cutoff + 1;
+    int storage[3][MAX_WORD + 1];
+    int *prev2 = storage[0], *prev = storage[1], *row = storage[2];
+    std::fill(prev, prev + m + 1, inf);
+    for (int j = 0; j <= std::min(m, cutoff); ++j) prev[j] = j;
+    for (int i = 1; i <= n; ++i) {
+        const int start = std::max(1, i - cutoff), end = std::min(m, i + cutoff);
+        row[0] = i <= cutoff ? i : inf;
+        if (start > 1) row[start - 1] = inf;
+        int smallest = row[0];
+        for (int j = start; j <= end; ++j) {
+            row[j] = std::min({prev[j] + 1, row[j - 1] + 1,
+                              prev[j - 1] + (a[i - 1] != b[j - 1])});
+            if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1])
+                row[j] = std::min(row[j], prev2[j - 2] + 1);
+            smallest = std::min(smallest, row[j]);
+        }
+        if (end < m) row[end + 1] = inf;
+        // No future path can return to the band after every prefix is too costly.
+        if (smallest > cutoff) return inf;
+        std::swap(prev2, prev); std::swap(prev, row);
+    }
+    return std::min(prev[m], inf);
 }
 
 bool keyboard_neighbor(char a, char b) {
@@ -184,16 +262,16 @@ double gap(const string& s, size_t i, bool spelling_costs = false) {
     if ((i && s[i] == s[i - 1]) || (i + 1 < s.size() && s[i] == s[i + 1])) return spelling_costs ? .35 : .45;
     return vowel(s[i]) ? .8 : 1.;
 }
-double weighted_distance(const string& a, const string& b, double transpose_cost = .65, bool spelling_costs = false, bool extended = false) {
+double weighted_distance(const string& a, const string& b, double transpose_cost = .65, bool spelling_costs = false, bool extended = false, double insertion_scale = 1.) {
     double d[MAX_WORD + 1][MAX_WORD + 1];
     d[0][0] = 0;
     for (size_t i = 1; i <= a.size(); ++i) d[i][0] = d[i - 1][0] + gap(a, i - 1, spelling_costs);
-    for (size_t j = 1; j <= b.size(); ++j) d[0][j] = d[0][j - 1] + gap(b, j - 1, spelling_costs);
+    for (size_t j = 1; j <= b.size(); ++j) d[0][j] = d[0][j - 1] + insertion_scale * gap(b, j - 1, spelling_costs);
     const auto& table = rules(extended);
     for (size_t i = 1; i <= a.size(); ++i) for (size_t j = 1; j <= b.size(); ++j) {
         char x = a[i - 1], y = b[j - 1];
         double sub = x == y ? 0 : (vowel(x) && vowel(y) ? (spelling_costs ? .8 : .55) : (keyboard_neighbor(x, y) ? .8 : 1.));
-        d[i][j] = std::min({d[i - 1][j] + gap(a, i - 1, spelling_costs), d[i][j - 1] + gap(b, j - 1, spelling_costs), d[i - 1][j - 1] + sub});
+        d[i][j] = std::min({d[i - 1][j] + gap(a, i - 1, spelling_costs), d[i][j - 1] + insertion_scale * gap(b, j - 1, spelling_costs), d[i - 1][j - 1] + sub});
         if (i > 1 && j > 1 && x == b[j - 2] && a[i - 2] == y)
             d[i][j] = std::min(d[i][j], d[i - 2][j - 2] + transpose_cost);
         for (const auto& r : table[static_cast<unsigned char>(x) * 128 + static_cast<unsigned char>(y)]) {
@@ -219,6 +297,10 @@ struct Options {
     double edit_weight = .5;
     double sound_weight = .15;
     double prior_weight = .08;
+    double insertion_scale = .75;
+    double vowel_weight = 0.;
+    double ngram_weight = .5;
+    bool edge_transpositions = true;
 };
 
 Options legacy_options() {
@@ -227,6 +309,8 @@ Options legacy_options() {
     o.suffix_weight = 0; o.boundary_weight = 0;
     o.transpose_cost = .65; o.edit_weight = 0;
     o.sound_weight = .28; o.prior_weight = .12;
+    o.insertion_scale = 1.; o.vowel_weight = 0.; o.ngram_weight = 0.;
+    o.edge_transpositions = false;
     return o;
 }
 
@@ -249,7 +333,7 @@ uint64_t get(const std::vector<unsigned char>& buf, size_t& at, size_t bytes) {
     return n;
 }
 
-void build_index(const string& lexicon, const string& path, bool contextual = false, bool refined = false) {
+void build_index(const string& lexicon, const string& path, bool contextual = false, bool refined = false, bool compact = false) {
     std::ifstream in(lexicon);
     if (!in) throw std::runtime_error("cannot open lexicon: " + lexicon);
     std::vector<Entry> words;
@@ -281,13 +365,24 @@ void build_index(const string& lexicon, const string& path, bool contextual = fa
     }
     std::ofstream out(path, std::ios::binary);
     if (!out) throw std::runtime_error("cannot write index: " + path);
-    out.write(refined ? REFINED_MAGIC : (contextual ? CONTEXT_MAGIC : MAGIC), 8);
+    out.write(compact ? COMPACT_MAGIC : (refined ? REFINED_MAGIC : (contextual ? CONTEXT_MAGIC : MAGIC)), 8);
     put(out, words.size(), 4); put(out, spelling.size(), 8); put(out, sound.size(), 8);
     for (const auto& w : words) {
         put(out, w.word.size(), 1); put(out, w.weight, 4);
         out.write(w.word.data(), static_cast<std::streamsize>(w.word.size()));
+        if (compact) { put(out, w.phone.size(), 1); out.write(w.phone.data(), static_cast<std::streamsize>(w.phone.size())); }
     }
-    for (const auto* index : {&spelling, &sound}) for (const auto& p : *index) { put(out, p.key, 8); put(out, p.id, 4); }
+    for (const auto* index : {&spelling, &sound}) {
+        if (compact) {
+            size_t groups = 0;
+            for (size_t i = 0; i < index->size(); ++i) if (i == 0 || (*index)[i].key != (*index)[i - 1].key) ++groups;
+            put(out, groups, 8);
+            for (size_t i = 0; i < index->size(); ++i) if (i == 0 || (*index)[i].key != (*index)[i - 1].key) {
+                put(out, (*index)[i].key, 8); put(out, i, 4);
+            }
+            for (const auto& p : *index) put(out, p.id, 4);
+        } else for (const auto& p : *index) { put(out, p.key, 8); put(out, p.id, 4); }
+    }
     if (!out) throw std::runtime_error("failed writing index");
     std::cerr << "Indexed " << words.size() << " words, " << spelling.size() << " spelling and " << sound.size() << " sound postings\n";
 }
@@ -295,16 +390,34 @@ void build_index(const string& lexicon, const string& path, bool contextual = fa
 struct Candidate { uint32_t id; int edits, sound_edits; double cost, score; };
 struct Result { string word, reason; std::vector<Candidate> candidates; };
 
+// Store each hash once, followed by offsets into a contiguous word-ID array.
+struct PostingIndex {
+    std::vector<uint64_t> keys;
+    std::vector<uint32_t> offsets, ids;
+};
+
 class Corrector {
     Options options;
     bool contextual = false;
     bool refined = false;
     std::vector<Entry> words;
-    std::unordered_map<string, uint32_t> exact;
-    std::vector<Posting> spelling, sound;
+    std::vector<uint32_t> masks;
+    std::vector<string> vowel_keys;
+    std::vector<std::vector<uint16_t>> word_bigrams;
+    // A flat open-addressed table avoids an allocation for every dictionary word.
+    std::vector<uint32_t> exact;
+    PostingIndex spelling, sound;
     std::vector<uint32_t> seen;
     uint32_t generation = 0;
     std::unordered_map<string, string> cache;
+    uint32_t find_exact(const string& word) const {
+        size_t slot = hash(word) & (exact.size() - 1);
+        while (exact[slot] != NO_WORD) {
+            if (words[exact[slot]].word == word) return exact[slot];
+            slot = (slot + 1) & (exact.size() - 1);
+        }
+        return NO_WORD;
+    }
 public:
     explicit Corrector(const string& path, Options config = {}) : options(config) {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
@@ -314,45 +427,86 @@ public:
         std::vector<unsigned char> buf(static_cast<size_t>(size));
         file.seekg(0); file.read(reinterpret_cast<char*>(buf.data()), size);
         const string magic(buf.begin(), buf.begin() + 8);
-        if (!file || (magic != string(MAGIC, 8) && magic != string(CONTEXT_MAGIC, 8) && magic != string(REFINED_MAGIC, 8))) throw std::runtime_error("invalid index header");
+        const bool compact = magic == string(COMPACT_MAGIC, 8);
+        if (!file || (!compact && magic != string(MAGIC, 8) && magic != string(CONTEXT_MAGIC, 8) && magic != string(REFINED_MAGIC, 8))) throw std::runtime_error("invalid index header");
         refined = magic == string(REFINED_MAGIC, 8);
-        contextual = refined || magic == string(CONTEXT_MAGIC, 8);
+        contextual = compact || refined || magic == string(CONTEXT_MAGIC, 8);
         size_t at = 8;
         auto n = get(buf, at, 4), ns = get(buf, at, 8), np = get(buf, at, 8);
-        if (n == 0 || n > 1000000 || ns > buf.size() / 12 || np > buf.size() / 12) throw std::runtime_error("invalid index counts");
-        words.reserve(n); exact.reserve(n * 2);
+        if (n == 0 || n > 1000000 || ns > buf.size() / (compact ? 4 : 12) || np > buf.size() / (compact ? 4 : 12)) throw std::runtime_error("invalid index counts");
+        words.reserve(n); masks.reserve(n);
+        if (options.vowel_weight > 0) vowel_keys.reserve(n);
+        if (options.ngram_weight > 0) word_bigrams.reserve(n);
+        size_t slots = 1;
+        while (slots < n * 2) slots *= 2;
+        exact.assign(slots, NO_WORD);
         for (uint32_t i = 0; i < n; ++i) {
             size_t len = get(buf, at, 1); auto weight = get(buf, at, 4);
             if (len == 0 || len > MAX_WORD || len > buf.size() - at || weight == 0) throw std::runtime_error("invalid index entry");
             string word(buf.begin() + at, buf.begin() + at + len); at += len;
-            if (!valid(word) || !exact.emplace(word, i).second) throw std::runtime_error("invalid or duplicate index word");
-            words.push_back({word, contextual ? contextual_phonetic(word, refined) : phonetic(word), static_cast<uint32_t>(weight), std::log1p(static_cast<double>(weight))});
+            if (!valid(word) || find_exact(word) != NO_WORD) throw std::runtime_error("invalid or duplicate index word");
+            string phone;
+            if (compact) {
+                size_t phone_len = get(buf, at, 1);
+                if (phone_len > MAX_WORD || phone_len > buf.size() - at) throw std::runtime_error("invalid sound-key length");
+                phone.assign(buf.begin() + at, buf.begin() + at + phone_len); at += phone_len;
+                for (char c : phone) if (c < 'A' || c > 'Z') throw std::runtime_error("invalid sound key");
+            } else phone = contextual ? contextual_phonetic(word, refined) : phonetic(word);
+            words.push_back({word, phone, static_cast<uint32_t>(weight), std::log1p(static_cast<double>(weight))});
+            masks.push_back(letter_mask(word));
+            if (options.vowel_weight > 0) vowel_keys.push_back(vowel_signature(word));
+            if (options.ngram_weight > 0) word_bigrams.push_back(bigrams(word));
+            size_t slot = hash(word) & (exact.size() - 1);
+            while (exact[slot] != NO_WORD) slot = (slot + 1) & (exact.size() - 1);
+            exact[slot] = i;
         }
-        if (ns + np != (buf.size() - at) / 12 || (buf.size() - at) % 12) throw std::runtime_error("invalid index length");
-        auto load = [&](std::vector<Posting>& index, size_t count) {
-            index.reserve(count);
-            for (size_t i = 0; i < count; ++i) {
-                auto key = get(buf, at, 8); auto id = get(buf, at, 4);
-                if (id >= n) throw std::runtime_error("invalid posting id");
-                Posting p{key, static_cast<uint32_t>(id)};
-                if (!index.empty() && p < index.back()) throw std::runtime_error("unsorted index");
-                index.push_back(p);
+        if (!compact && (ns + np != (buf.size() - at) / 12 || (buf.size() - at) % 12)) throw std::runtime_error("invalid index length");
+        auto load = [&](PostingIndex& index, size_t count) {
+            index.ids.reserve(count);
+            if (compact) {
+                const size_t groups = get(buf, at, 8);
+                if (groups > count || groups > (buf.size() - at) / 12) throw std::runtime_error("invalid key count");
+                index.keys.reserve(groups); index.offsets.reserve(groups + 1);
+                for (size_t i = 0; i < groups; ++i) {
+                    auto key = get(buf, at, 8), offset = get(buf, at, 4);
+                    if (offset >= count || (i == 0 && offset != 0) ||
+                        (i && (key <= index.keys.back() || offset <= index.offsets.back()))) throw std::runtime_error("invalid key ordering");
+                    index.keys.push_back(key); index.offsets.push_back(static_cast<uint32_t>(offset));
+                }
+                if ((count != 0 && groups == 0) || count > (buf.size() - at) / 4) throw std::runtime_error("invalid posting count");
+                size_t group = 0;
+                for (size_t i = 0; i < count; ++i) {
+                    const auto id = get(buf, at, 4);
+                    if (group + 1 < groups && i == index.offsets[group + 1]) ++group;
+                    if (id >= n || (i > index.offsets[group] && id <= index.ids.back())) throw std::runtime_error("invalid posting id or ordering");
+                    index.ids.push_back(static_cast<uint32_t>(id));
+                }
+            } else {
+                Posting last{};
+                for (size_t i = 0; i < count; ++i) {
+                    const Posting p{get(buf, at, 8), static_cast<uint32_t>(get(buf, at, 4))};
+                    if (p.id >= n || (i && p < last)) throw std::runtime_error("invalid posting id or ordering");
+                    if (i == 0 || p.key != last.key) { index.keys.push_back(p.key); index.offsets.push_back(static_cast<uint32_t>(i)); }
+                    index.ids.push_back(p.id); last = p;
+                }
             }
+            index.offsets.push_back(static_cast<uint32_t>(count));
         };
         load(spelling, ns); load(sound, np);
+        if (at != buf.size()) throw std::runtime_error("invalid index length");
         seen.resize(n); cache.reserve(16384);
     }
 
-    Result analyze(const string& input) {
-        auto known = exact.find(input);
-        if (known != exact.end() && options.known_ratio == 0.) return {input, "dictionary word: preserved", {}};
+    Result analyze(const string& input, bool exhaustive = true) {
+        auto known = find_exact(input);
+        if (known != NO_WORD && options.known_ratio == 0.) return {input, "dictionary word: preserved", {}};
         if (!valid(input) || input.size() > MAX_WORD || input.size() < 3)
             return {input, "outside conservative correction range: preserved", {}};
         if (options.possessives && input.size() > 3 && input.compare(input.size() - 2, 2, "'s") == 0) {
             const string stem = input.substr(0, input.size() - 2);
             if (stem.find('\'') == string::npos) {
-                auto result = analyze(stem);
-                if (exact.count(result.word)) {
+                auto result = analyze(stem, exhaustive);
+                if (find_exact(result.word) != NO_WORD) {
                     result.word += "'s";
                     result.reason = "possessive stem correction";
                     return result;
@@ -361,13 +515,15 @@ public:
         }
         if (++generation == 0) { std::fill(seen.begin(), seen.end(), 0); ++generation; }
         std::vector<uint32_t> ids;
-        auto collect = [&](const std::vector<Posting>& index, const std::vector<uint64_t>& keys, size_t limit) {
+        auto collect = [&](const PostingIndex& index, const std::vector<uint64_t>& keys, size_t limit) {
             for (auto key : keys) {
-                auto it = std::lower_bound(index.begin(), index.end(), Posting{key, 0});
-                size_t count = 0;
-                while (it != index.end() && it->key == key && count++ < limit) {
-                    if (seen[it->id] != generation) { seen[it->id] = generation; ids.push_back(it->id); }
-                    ++it;
+                auto it = std::lower_bound(index.keys.begin(), index.keys.end(), key);
+                if (it == index.keys.end() || *it != key) continue;
+                const size_t group = static_cast<size_t>(it - index.keys.begin());
+                const size_t begin = index.offsets[group], end = std::min<size_t>(index.offsets[group + 1], begin + std::min(limit, index.ids.size()));
+                for (size_t i = begin; i < end; ++i) {
+                    const auto id = index.ids[i];
+                    if (seen[id] != generation) { seen[id] = generation; ids.push_back(id); }
                 }
             }
         };
@@ -378,34 +534,62 @@ public:
         if (input.size() >= 5) collect(sound, deletes(phone, 1), 128);
         if (options.wide && input.size() >= 6) collect(sound, deletes(phone, 2), 64);
         std::vector<Candidate> candidates;
-        for (auto id : ids) {
-            const auto& w = words[id];
-            if (std::abs(static_cast<int>(input.size()) - static_cast<int>(w.word.size())) > 4) continue;
-            int raw = distance(input, w.word);
-            if (input.size() <= 3 && raw > 1) continue;
-            int pd = distance(phone, w.phone);
-            int limit = options.wide ? std::min(6, std::max(3, static_cast<int>(input.size()) / 2 + 1))
-                                     : std::min(5, std::max(2, static_cast<int>(input.size()) / 2));
-            if (raw > 2 && (pd > (options.wide ? 2 : 1) || raw > limit)) continue;
-            double cost = weighted_distance(input, w.word, options.transpose_cost, options.spelling_costs, options.extended_rules);
-            double score = (1 - options.edit_weight) * cost + options.edit_weight * raw
-                + options.sound_weight * pd - (known != exact.end() ? .2 : options.prior_weight) * w.prior
-                + options.boundary_weight * (input.front() != w.word.front())
-                + options.suffix_weight * (input.back() != w.word.back());
-            candidates.push_back({id, raw, pd, cost, score});
-        }
-        std::sort(candidates.begin(), candidates.end(), [&](const Candidate& a, const Candidate& b) {
+        const uint32_t input_mask = letter_mask(input);
+        const string input_vowels = options.vowel_weight > 0 ? vowel_signature(input) : "";
+        const auto input_bigrams = options.ngram_weight > 0 ? bigrams(input) : std::vector<uint16_t>{};
+        if (!exhaustive) candidates.reserve(3);
+        auto better = [&](const Candidate& a, const Candidate& b) {
             if (a.score != b.score) return a.score < b.score;
             if (words[a.id].weight != words[b.id].weight) return words[a.id].weight > words[b.id].weight;
             return words[a.id].word < words[b.id].word;
-        });
+        };
+        for (auto id : ids) {
+            const auto& w = words[id];
+            if (std::abs(static_cast<int>(input.size()) - static_cast<int>(w.word.size())) > 4) continue;
+            const int limit = options.wide ? std::min(6, std::max(3, static_cast<int>(input.size()) / 2 + 1))
+                                          : std::min(5, std::max(2, static_cast<int>(input.size()) / 2));
+            const int raw_limit = input.size() <= 3 ? 1 : limit;
+            if (too_many_missing_letters(input_mask, masks[id], raw_limit) ||
+                too_many_missing_letters(masks[id], input_mask, raw_limit)) continue;
+            int raw = bounded_distance(input, w.word, input.size() <= 3 ? 1 : limit);
+            if (raw > limit) continue;
+            if (input.size() <= 3 && raw > 1) continue;
+            int pd = raw > 2 ? bounded_distance(phone, w.phone, options.wide ? 2 : 1)
+                             : distance(phone, w.phone);
+            if (raw > 2 && (pd > (options.wide ? 2 : 1) || raw > limit)) continue;
+            const double vowel_score = options.vowel_weight > 0 ? options.vowel_weight * distance(input_vowels, vowel_keys[id]) : 0.;
+            const double ngram_score = options.ngram_weight > 0 ? options.ngram_weight * bigram_distance(input_bigrams, word_bigrams[id]) : 0.;
+            bool first_different = input.front() != w.word.front(), last_different = input.back() != w.word.back();
+            if (options.edge_transpositions && w.word.size() > 1) {
+                if (input[0] == w.word[1] && input[1] == w.word[0]) first_different = false;
+                if (input.back() == w.word[w.word.size() - 2] && input[input.size() - 2] == w.word.back()) last_different = false;
+            }
+            double fixed_score = options.edit_weight * raw
+                + options.sound_weight * pd - (known != NO_WORD ? .2 : options.prior_weight) * w.prior
+                + options.boundary_weight * first_different
+                + options.suffix_weight * last_different + vowel_score + ngram_score;
+            // Weighted cost is nonnegative. Once its lower bound cannot enter
+            // the best two, it cannot change the winner or confidence margin.
+            if (!exhaustive && candidates.size() == 2 && fixed_score > candidates[1].score + 1e-12) continue;
+            double cost = weighted_distance(input, w.word, options.transpose_cost, options.spelling_costs, options.extended_rules, options.insertion_scale);
+            double score = (1 - options.edit_weight) * cost + options.edit_weight * raw
+                + options.sound_weight * pd - (known != NO_WORD ? .2 : options.prior_weight) * w.prior
+                + options.boundary_weight * first_different
+                + options.suffix_weight * last_different + vowel_score + ngram_score;
+            candidates.push_back({id, raw, pd, cost, score});
+            if (!exhaustive) {
+                std::sort(candidates.begin(), candidates.end(), better);
+                if (candidates.size() > 2) candidates.pop_back();
+            }
+        }
+        if (exhaustive) std::sort(candidates.begin(), candidates.end(), better);
         Result result{input, "no confident candidate: preserved", std::move(candidates)};
         if (result.candidates.empty()) return result;
         const auto& best = result.candidates[0];
         double ceiling = std::min(3.2, 1.05 + .2 * input.size());
         double margin = result.candidates.size() > 1 ? result.candidates[1].score - best.score : 100.;
-        if (known != exact.end() && best.id != known->second) {
-            const auto& original = words[known->second];
+        if (known != NO_WORD && best.id != known) {
+            const auto& original = words[known];
             if (best.edits > 1 || best.cost > 1. ||
                 words[best.id].weight < options.known_ratio * original.weight ||
                 best.score + .15 >= -.2 * original.prior) return result;
@@ -419,7 +603,7 @@ public:
     string correct(const string& input) {
         auto it = cache.find(input);
         if (it != cache.end()) return it->second;
-        auto result = analyze(input);
+        auto result = analyze(input, false);
         // Fixed cache cap prevents input stream length from growing memory forever.
         if (cache.size() < 50000 && input.size() <= MAX_WORD) cache.emplace(input, result.word);
         return result.word;
@@ -462,8 +646,8 @@ std::filesystem::path executable_dir(const char* argv0) {
 int main(int argc, char** argv) {
     try {
         std::ios::sync_with_stdio(false); std::cin.tie(nullptr);
-        if (argc == 4 && (ac::string(argv[1]) == "--build-index" || ac::string(argv[1]) == "--build-index-enhanced" || ac::string(argv[1]) == "--build-index-refined")) {
-            ac::build_index(argv[2], argv[3], ac::string(argv[1]) != "--build-index", ac::string(argv[1]) == "--build-index-refined"); return 0;
+        if (argc == 4 && (ac::string(argv[1]) == "--build-index" || ac::string(argv[1]) == "--build-index-enhanced" || ac::string(argv[1]) == "--build-index-refined" || ac::string(argv[1]) == "--build-index-compact")) {
+            ac::build_index(argv[2], argv[3], ac::string(argv[1]) != "--build-index", ac::string(argv[1]) == "--build-index-refined", ac::string(argv[1]) == "--build-index-compact"); return 0;
         }
         ac::string index = (ac::executable_dir(argv[0]) / "data/index.bin").string();
         ac::string explain;
@@ -473,13 +657,16 @@ int main(int argc, char** argv) {
             ac::string arg = argv[i];
             if (arg == "--index" && i + 1 < argc) index = argv[++i];
             else if (arg == "--explain" && i + 1 < argc) explain = argv[++i];
-            else if ((arg == "--edit-weight" || arg == "--sound-weight" || arg == "--prior-weight" || arg == "--transpose-cost" || arg == "--boundary-weight" || arg == "--suffix-weight") && i + 1 < argc) {
+            else if ((arg == "--edit-weight" || arg == "--sound-weight" || arg == "--prior-weight" || arg == "--transpose-cost" || arg == "--boundary-weight" || arg == "--suffix-weight" || arg == "--insertion-scale" || arg == "--vowel-weight" || arg == "--ngram-weight") && i + 1 < argc) {
                 const ac::string value = argv[++i];
                 size_t used = 0;
                 double number = std::stod(value, &used);
                 if (used != value.size() || !std::isfinite(number) || number < 0 || number > 1)
                     throw std::runtime_error("weight must be a number in [0,1]");
                 if (arg == "--suffix-weight") options.suffix_weight = number;
+                if (arg == "--insertion-scale") options.insertion_scale = number;
+                if (arg == "--vowel-weight") options.vowel_weight = number;
+                if (arg == "--ngram-weight") options.ngram_weight = number;
                 if (arg == "--boundary-weight") options.boundary_weight = number;
                 if (arg == "--transpose-cost") options.transpose_cost = number;
                 if (arg == "--edit-weight") options.edit_weight = number;
@@ -501,6 +688,8 @@ int main(int argc, char** argv) {
                     throw std::runtime_error("known ratio must be finite and nonnegative");
             }
             else if (arg == "--wide") options.wide = true;
+            else if (arg == "--edge-transpositions") options.edge_transpositions = true;
+            else if (arg == "--no-edge-transpositions") options.edge_transpositions = false;
             else if (arg == "--possessives") options.possessives = true;
             else if (arg == "--extended-rules") options.extended_rules = true;
             else if (arg == "--spelling-costs") options.spelling_costs = true;
@@ -512,9 +701,12 @@ int main(int argc, char** argv) {
                              "       autocorrect --build-index words.tsv index.bin\n"
                              "       autocorrect --build-index-enhanced words.tsv index.bin\n"
                              "       autocorrect --build-index-refined words.tsv index.bin\n"
+                             "       autocorrect --build-index-compact words.tsv index.bin\n"
                              "Options: --index PATH, --profile default|legacy\n"
                              "         --edit-weight N --sound-weight N --prior-weight N\n"
                              "         --boundary-weight N --suffix-weight N --transpose-cost N\n"
+                             "         --insertion-scale N --vowel-weight N\n"
+                             "         --ngram-weight N --edge-transpositions --no-edge-transpositions\n"
                              "         --spelling-costs --no-spelling-costs\n"
                              "         --extended-rules --no-extended-rules\n"
                              "         --known-ratio N --possessives --wide\n"

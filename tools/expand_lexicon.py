@@ -29,7 +29,7 @@ def verb_forms(w):
         if w.endswith('c'): forms.update({w+'ked',w+'king'})
     return forms
 
-def expand(base, archive, ratio=.5, smooth=False):
+def expand(base, archive, ratio=.5, smooth=False, conservative=False):
     weights=dict(base); parents={}
     with zipfile.ZipFile(archive) as z:
         for pos in ['noun','verb','adj']:
@@ -37,13 +37,37 @@ def expand(base, archive, ratio=.5, smooth=False):
             for line in z.read('wordnet/'+pos+'.exc').decode().splitlines():
                 form,*roots=line.split()
                 for root in roots: exceptions.setdefault(root,set()).add(form)
-            for line in z.read('wordnet/index.'+pos).decode().splitlines():
+            lines=z.read('wordnet/index.'+pos).decode().splitlines()
+            lemmas={line.split()[0] for line in lines if line and not line[0].isspace()}
+            already_inflected=set()
+            proper_only=set()
+            if conservative:
+                already_inflected.update(f for root,forms in exceptions.items() for f in forms if f != root)
+                if pos=='noun':
+                    already_inflected.update(plural(root) for root in lemmas if VALID.fullmatch(root))
+                    # WordNet data preserves capitalization; its index does not.
+                    # Keep proper nouns in vocabulary, but do not invent plurals.
+                    if 'wordnet/data.noun' in z.namelist():
+                        common=set(); proper=set()
+                        for row in z.read('wordnet/data.noun').decode().splitlines():
+                            if not row or row[0].isspace(): continue
+                            fields=row.split(' | ',1)[0].split()
+                            for i in range(int(fields[3],16)):
+                                spelling=fields[4+2*i]
+                                (proper if any(c.isupper() for c in spelling) else common).add(spelling.lower())
+                        proper_only=proper-common
+                elif pos=='adj':
+                    for root in lemmas:
+                        if root.endswith('y'): already_inflected.update({root[:-1]+'ier',root[:-1]+'iest'})
+                        elif root.endswith('e'): already_inflected.update({root+'r',root+'st'})
+                        else: already_inflected.update({root+'er',root+'est'})
+            for line in lines:
                 if not line or line[0].isspace(): continue
                 w=line.split()[0]
                 if w not in base or not VALID.fullmatch(w) or len(w)<3: continue
                 forms=set(exceptions.get(w,()))
                 if pos=='noun':
-                    if w not in exceptions or any(f.endswith(('ae','i')) for f in forms): forms.add(plural(w))
+                    if (not conservative or (w not in already_inflected and w not in proper_only)) and (w not in exceptions or any(f.endswith(('ae','i')) for f in forms)): forms.add(plural(w))
                 elif pos=='verb':
                     regular=verb_forms(w)
                     irregular=exceptions.get(w,set())
@@ -56,7 +80,7 @@ def expand(base, archive, ratio=.5, smooth=False):
                         regular-=doubled-irregular
                     if w.endswith('c'): regular-={w+'ed',w+'ing'}
                     forms.update(regular)
-                elif pos=='adj' and not exceptions.get(w) and len(w)<=7 and len(re.findall('[aeiouy]+',w))<=2 and not w.endswith(('ous','ful','ing','ed','ic','al')):
+                elif pos=='adj' and not exceptions.get(w) and (not conservative or w not in already_inflected) and len(w)<=7 and len(re.findall('[aeiouy]+',w))<=2 and not w.endswith(('ous','ful','ing','ed','ic','al')):
                     if w.endswith('y'): forms.update({w[:-1]+'ier',w[:-1]+'iest'})
                     elif w.endswith('e'): forms.update({w+'r',w+'st'})
                     else: forms.update({w+'er',w+'est'})
@@ -77,6 +101,7 @@ def main():
     p.add_argument('--extra-words',type=Path,action='append',default=[])
     p.add_argument('--observed-webster',action='store_true')
     p.add_argument('--smooth-existing',action='store_true')
+    p.add_argument('--conservative-morphology',action='store_true')
     p.add_argument('--blend-ranks',action='store_true')
     p.add_argument('--add-ranked',action='store_true')
     p.add_argument('--webster',type=Path)
@@ -89,7 +114,7 @@ def main():
     if (a.observed_webster or a.derived_prefixes) and not a.webster:
         p.error('Webster options require --webster')
     base={w:int(n) for w,n in (line.split() for line in a.base.read_text().splitlines())}
-    weights,parents=expand(base,a.wordnet,a.ratio,a.smooth_existing)
+    weights,parents=expand(base,a.wordnet,a.ratio,a.smooth_existing,a.conservative_morphology)
     for path in a.extra_words:
         for w in path.read_text().splitlines():
             w=w.lower()
@@ -128,7 +153,7 @@ def main():
     a.output.mkdir(parents=True,exist_ok=True)
     output=''.join(f'{w}\t{weights[w]}\n' for w in sorted(weights))
     (a.output/'words.tsv').write_text(output)
-    report={'base_sha256':hashlib.sha256(a.base.read_bytes()).hexdigest(),'wordnet_sha256':hashlib.sha256(a.wordnet.read_bytes()).hexdigest(),'entries':len(weights),'added':len(weights)-len(base),'ratio':a.ratio,'smooth_existing':a.smooth_existing,'derived_prefixes':a.derived_prefixes,'observed_webster':a.observed_webster,'blend_ranks':a.blend_ranks,'add_ranked':a.add_ranked,'webster_sha256':hashlib.sha256(a.webster.read_bytes()).hexdigest() if a.webster else None,'extra_word_sources':[{'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in a.extra_words],'generator_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'ranked_words_sha256':hashlib.sha256(a.ranked_words.read_bytes()).hexdigest() if a.ranked_words else None,'words_sha256':hashlib.sha256(output.encode()).hexdigest(),'method':'WordNet POS rules and exceptions; no benchmark answers used'}
+    report={'base_sha256':hashlib.sha256(a.base.read_bytes()).hexdigest(),'wordnet_sha256':hashlib.sha256(a.wordnet.read_bytes()).hexdigest(),'entries':len(weights),'added':len(weights)-len(base),'ratio':a.ratio,'smooth_existing':a.smooth_existing,'conservative_morphology':a.conservative_morphology,'derived_prefixes':a.derived_prefixes,'observed_webster':a.observed_webster,'blend_ranks':a.blend_ranks,'add_ranked':a.add_ranked,'webster_sha256':hashlib.sha256(a.webster.read_bytes()).hexdigest() if a.webster else None,'extra_word_sources':[{'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in a.extra_words],'generator_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'ranked_words_sha256':hashlib.sha256(a.ranked_words.read_bytes()).hexdigest() if a.ranked_words else None,'words_sha256':hashlib.sha256(output.encode()).hexdigest(),'method':'WordNet POS rules and exceptions; no benchmark answers used'}
     (a.output/'provenance.json').write_text(json.dumps(report,indent=2)+'\n')
     (a.output/'inflection-parents.json').write_text(json.dumps(parents,sort_keys=True)+'\n')
     print(json.dumps(report))

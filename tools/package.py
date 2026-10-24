@@ -9,12 +9,13 @@ import tarfile
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    files = [root / name for name in ('README.md', 'ALGORITHM_GUIDE.md',
+    files = [root / name for name in ('README.md', 'ALGORITHM.md', 'ALGORITHM_GUIDE.md',
                                      'ITERATION_REPORT.md', 'build.sh', 'test.sh')]
-    for directory in ('src', 'tests', 'tools', 'results'):
+    for directory in ('src', 'tests', 'tools'):
         files.extend(p for p in (root / directory).rglob('*')
-                     if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'
-                     and ('iterations' not in p.parts or p.name == 'summary.json'))
+                     if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
+    files.extend(root / 'results' / name for name in
+                 ('public-development.json', 'birkbeck-final.json'))
     files.extend(root / 'data' / name for name in
                  ('words.tsv', 'base-words.tsv', 'provenance.json', 'base-provenance.json',
                   'WORDNET-LICENSE.txt', 'WEBSTER-NOTICE.txt'))

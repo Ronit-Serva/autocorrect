@@ -9,6 +9,23 @@ int main() {
     assert(distance("planet", "plnaet") == 1);
     assert(distance("kitten", "sitting") == 3);
     assert(distance("abcd", "badc") == 2);
+    // A bounded implementation must preserve OSA exactly within its radius,
+    // including transpositions and values that cross a band edge.
+    std::vector<string> small{""};
+    for (int n = 1; n <= 5; ++n) for (int bits = 0; bits < (1 << n); ++bits) {
+        string s(n, 'a');
+        for (int i = 0; i < n; ++i) if (bits & (1 << i)) s[i] = 'b';
+        small.push_back(s);
+    }
+    for (const auto& a : small) for (const auto& b : small)
+        for (int radius = 0; radius <= 4; ++radius)
+            assert(bounded_distance(a, b, radius) == std::min(distance(a, b), radius + 1));
+    for (int n = 32; n <= 64; ++n) {
+        string a(n, 'a'), b = a;
+        for (int j = 0; j < n; j += 7) b[j] = 'b';
+        for (int radius = 1; radius <= 6; ++radius)
+            assert(bounded_distance(a, b, radius) == std::min(distance(a, b), radius + 1));
+    }
     assert(weighted_distance("alphabet", "alfabet") < distance("alphabet", "alfabet"));
     assert(weighted_distance("garden", "garrden") < 1);
     assert(weighted_distance("can't", "cant") < 1);

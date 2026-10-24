@@ -5,58 +5,43 @@ with extra detail on its hand-written phonetic encoding. It is intended as a map
 for controlled algorithm experiments. Read it alongside `src/autocorrect.cpp`;
 the source is authoritative if this document and the code ever differ.
 
-## Current measured result and configuration
+## Current submission result and configuration
 
-The shipped default scores **1,828/2,000 (91.40%)** on the supplied hackathon set
-and **14,412/35,267 (40.865%)** on Birkbeck, compared with original scores of
-72.60% and 39.694%. These datasets were repeatedly inspected during development;
-these are tuned development measurements, not held-out accuracy. The 99% target
-has not been reached. See `ITERATION_REPORT.md` and
-`results/iterations/summary.json` for all measured variants.
+The shipped default scores **1,844/2,000 (92.20%)** on hackathon and
+**14,660/35,267 (41.569%)** on Birkbeck. The original baseline scored 72.60%
+and 39.694%; the previous release scored 91.40% and 40.865%. The 99% target
+has not been reached. Both datasets were used for development, so these are
+not held-out accuracy estimates.
 
-The default uses 161,847 dictionary entries, the contextual sound encoder,
-conservative inflection weights, and the ranking configuration below. Known
-words remain unchanged. Experimental modes are optional and must be measured
-before enabling them. The source is authoritative for option defaults.
+The submission enables the former `--insertion-scale .75 --ngram-weight .5
+--edge-transpositions` experiment by default, with the same 161,847-word
+WordNet/Webster dictionary and contextual sound encoder. Known words remain
+preserved; wide search, known-word replacement, possessive handling and the
+vowel-signature feature remain off.
 
-### Final release run record
+### Submission run record
 
-The release measurements below were made sequentially on macOS 12.7.6
-(x86_64), with the same final executable (`d3834b28a475931062cc86751f6eaaf44aac0a0d4f29f2940718ee87217d014d`).
-They include process startup and index loading. Treat timings as local
-single-run observations, not a general performance guarantee.
+Fresh default runs on macOS 12.7.6 x86-64, including startup and index loading:
 
-| Dataset | Exact matches | Accuracy | Clean-word preservation | Misspelling accuracy | Time | Peak RSS |
+| Dataset | Matches | Accuracy | Clean preservation | Typo accuracy | Time | Peak RSS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Hackathon public development | 1,828 / 2,000 | 91.400% | 95.750% | 90.313% | 1.225 s | 162.18 MiB |
-| Birkbeck native-speaker aggregate | 14,412 / 35,267 | 40.865% | 98.667% | 40.742% | 10.886 s | 164.92 MiB |
+| Hackathon | 1,844 / 2,000 | 92.200% | 95.750% | 91.313% | 0.592206 s | 90.84 MiB |
+| Birkbeck | 14,660 / 35,267 | 41.569% | 98.667% | 41.447% | 7.895524 s | 93.50 MiB |
 
-The run artifacts record SHA-256 hashes for the executable, input, and
-reference files. Hackathon input/reference hashes are respectively
-`0d411836a437a2b6e11faab405288097cb6d71b7471f53fceebb982e20ba3872` and
-`e38117aadd638b5f66f632e255bad0885ae9a9e69fdf321684ee40fe2440bc77`;
-Birkbeck hashes are
-`b4f03feea80de8af024610a8ef79a02b58d3bbdaf00ff779988b2a07c5e3717c` and
-`020ba42d8703fadd3dcb263b044a6e6b2bda42e5584209169699a9ce26601bd1`.
-See `results/public-development.json` and `results/birkbeck-final.json` for
-the complete machine-readable records and sampled errors.
+Executable SHA-256: `6d3d282c4d39ccb6d8853300b089c2fd2a32f2fe61ffb047ad268a602ac2f541`.
+The complete measurement metadata and input/reference hashes are in
+`results/public-development.json` and `results/birkbeck-final.json`. Predictions
+exactly match the selected resumed experiment. The unit suite and all 17
+Python tests pass. Linux execution has not been verified in this workspace;
+`./build.sh` provides an offline native build for the judge's Linux x86-64 host.
+Timing values are local single-run observations.
 
-The final hackathon error audit has 172 errors: 125 ranking errors, 28 targets
-outside the dictionary, 17 already-known inputs preserved unchanged, one
-abstention, and one candidate retrieval/filter failure. For Birkbeck, the
-audited categories are 7,989 ranking errors, 7,634 retrieval/filter failures,
-4,153 known-word-preservation errors, 365 missing-vocabulary errors, and 714
-abstentions. Birkbeck's deterministic input-only ceiling is 94.1106% because
-some identical inputs have different references. These categories and
-target-candidate traces are in `results/iterations/*-final-analysis.json`;
-they help distinguish dictionary coverage, retrieval, ranking, and the
-context-free task limit.
-
-The optional wide-search experiment is not the shipped default. The measured
-`--wide --edit-weight .25` combination reached 91.25% on hackathon and 41.387%
-on Birkbeck. It trades 3 hackathon answers for 184 additional Birkbeck answers
-relative to default and is substantially slower on Birkbeck. Exact paired
-configuration records are in `results/iterations/summary.json`.
+See `ALGORITHM.md` for all 21 resumed comparisons and their tradeoffs.
+Historical error categories in `ITERATION_REPORT.md` describe the previous
+91.40% release. Obsolete JSON run reports and the old summary were removed
+in submission cleanup; only the two final evaluation reports remain. No new
+candidate-level audit was run for the submission, and no result is claimed
+for the interrupted frequency-source import.
 
 ## Project at a glance
 
@@ -231,7 +216,10 @@ deterministic lookup; the word strings are used for all final comparisons.
   terminal `e` costs 0.45, other repeated letters cost 0.35, other vowels cost
   0.8, and other letters cost 1. Substitution costs 0 for the same letter, 0.8
   between vowels or neighboring QWERTY keys, and 1 otherwise. Adjacent
-  transposition costs 0.35. `--profile legacy` restores the original costs.
+  transposition costs 0.35. Candidate-letter insertion gaps are additionally
+  scaled by 0.75; deletion gaps and multi-character rules retain their costs.
+  `--profile legacy` restores the original costs, disables bigram/boundary
+  exemptions, and restores insertion scale 1.
 - A table of bidirectional multi-character spelling/sound rules can add a
   lower-cost transition, including `ph/f`, `ck/k`, `qu/kw`, `c/k`, `c/s`,
   `g/j`, `tion/shun`, `sion/zhun`, `ture/cher`, `ee/i`, `oo/u`, `eau/o`,
@@ -252,7 +240,13 @@ The final lower-is-better score is:
 - 0.08 * log(1 + dictionary_weight(candidate))
 + 0.25 * (first characters differ)
 + 0.15 * (last characters differ)
++ 0.5 * letter_bigram_Dice_distance(input, candidate)
 ```
+
+The first/last mismatch term is waived when the corresponding two boundary
+letters are swapped. Bigram distance counts multiset overlap of sorted adjacent
+letter pairs: `1 - 2 * common / (input_pair_count + candidate_pair_count)`.
+The weighted-distance term uses insertion scale 0.75.
 
 Ties break by larger raw dictionary weight and then alphabetical spelling.
 Weights start from WordNet counts and are smoothed across inflections; they
@@ -279,14 +273,21 @@ morphology can still overgenerate; it is not a complete English grammar.
 `data/provenance.json` records all selected options and source/output hashes;
 `data/base-provenance.json` describes the original dictionary.
 
-`./build.sh` compiles `src/autocorrect.cpp` as C++17, then calls the executable
-with `--build-index-enhanced data/words.tsv data/index.bin`. The binary file
-starts with `ACIDX004`, entry/posting counts, then word lengths, weights, word bytes, and
-the sorted spelling and sound posting arrays. Integer fields are serialized
-explicitly little-endian. Runtime validates the header, lengths, posting IDs,
-array ordering, and total file size before accepting the data. The loader
-also accepts legacy `ACIDX003` and refined `ACIDX005` files; the header selects
-the corresponding encoder, preventing a silent encoder/index mismatch.
+`./build.sh` compiles `src/autocorrect.cpp` as C++17 and calls
+`--build-index-compact data/words.tsv data/index.bin`. The `ACIDX006` format
+stores words, weights and precomputed contextual sound keys, then unique
+posting hashes with offsets into contiguous word-ID arrays. All integer fields
+are explicitly little-endian. The loader validates lengths, keys, offsets,
+posting IDs, ordering and total file size. It also supports `ACIDX003`,
+`ACIDX004` and `ACIDX005` with their matching encoders. The compact index is
+about 36 MiB for the selected dictionary.
+
+A flat open-addressed table supports exact-word lookups. Bounded OSA, rotating
+row pointers and distinct-letter masks reject impossible candidates cheaply.
+Normal prediction keeps the best two and uses a nonnegative weighted-cost
+lower bound to skip scores that cannot enter that pair. Diagnostic mode retains
+the full list. Exhaustive small-alphabet bounded-distance checks and
+fast/exhaustive decision-equivalence tests cover these optimizations.
 
 ## Data, evaluation, and reproducible iteration
 
@@ -361,7 +362,9 @@ distance, sound-key distance, weighted cost, dictionary weight, and total score.
 `--profile default` selects the shipped ranking; `--profile legacy` restores
 original ranking costs, not the original dictionary/encoder. Put the profile
 before overrides. Numeric controls are `--edit-weight`, `--sound-weight`,
-`--prior-weight`, `--boundary-weight`, `--suffix-weight`, and `--transpose-cost`.
+`--prior-weight`, `--boundary-weight`, `--suffix-weight`, `--transpose-cost`,
+`--insertion-scale`, `--ngram-weight`, and `--vowel-weight`.
+`--edge-transpositions` / `--no-edge-transpositions` control boundary exemptions.
 The edit weight blends raw OSA distance with weighted distance. Other switches
 are `--spelling-costs` / `--no-spelling-costs` and `--extended-rules` /
 `--no-extended-rules`. `--known-ratio N`, `--possessives`, and `--wide` are
@@ -386,8 +389,10 @@ python3 tools/analyze_failures.py --input hackathon_test/input.txt \
 `tools/evaluate.py` accepts repeated `--program-arg=VALUE`, `--output PATH`,
 and `--all-errors`. Always record executable, dictionary, input and reference
 hashes alongside experiments. Historic iteration executables and indexes are
-kept under ignored `build/iterations/`; full outputs and JSON reports are under
-`results/iterations/`. The compact summary is included in the submission archive.
+kept under ignored `build/iterations/`; local text outputs remain under
+`results/iterations/`. Older JSON run reports were removed during submission
+cleanup. The archive includes only the two final evaluation reports; historical
+comparison tables remain in the Markdown documents.
 
 ## Source map
 
@@ -406,5 +411,5 @@ kept under ignored `build/iterations/`; full outputs and JSON reports are under
 | `tests/unit.cpp` | Core distance, phonetic, and index-retrieval checks |
 | `tests/test_cli.py` | Command-line and stream behavior checks |
 | `build.sh`, `test.sh` | Build/index generation and local test entry points |
-| `results/` | Saved evaluation reports from prior runs |
+| `results/` | The two final evaluation reports and local text traces |
 
