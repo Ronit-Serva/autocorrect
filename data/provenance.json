@@ -1,10 +1,18 @@
 {
-  "entries": 85030,
-  "wordnet_version": "3.0",
+  "base_sha256": "3a8b92d379719ea23f1c2e6f4264d3a7cf5b7410954abe974697075983377f37",
   "wordnet_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59",
+  "entries": 161847,
+  "added": 76817,
+  "ratio": 0.2,
+  "smooth_existing": true,
+  "derived_prefixes": false,
+  "observed_webster": false,
+  "blend_ranks": false,
+  "add_ranked": false,
   "webster_sha256": "69d1a74371b98676d3312727115b13fefaf57d561561b6ee347d13b1eea0d0c9",
-  "frequency_sha256": null,
-  "words_sha256": "3a8b92d379719ea23f1c2e6f4264d3a7cf5b7410954abe974697075983377f37",
-  "weight": "1 + WordNet gloss token count + 10 * WordNet tagged sense count",
-  "note": "Weights are a hand-selected count heuristic, not general-English corpus frequencies. Optional external counts replace weights for matching entries."
+  "extra_word_sources": [],
+  "generator_sha256": "1b94c28ff853ca35f319a655a96219d0e84fcaf6d8eb20620bcd1c44ec920a1a",
+  "ranked_words_sha256": null,
+  "words_sha256": "24c7f7ef25ff52d9d3c8004a916f8aea2fe4e1862dbc41a83d392060f1632d90",
+  "method": "WordNet POS rules and exceptions; no benchmark answers used"
 }

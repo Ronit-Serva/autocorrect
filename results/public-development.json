@@ -1,116 +1,122 @@
 {
-  "dataset": "public-development",
+  "dataset": "final-default",
+  "command": [
+    "autocorrect"
+  ],
+  "executable_sha256": "7deefafc1059f3aa0b34d74de2540965a8463287ffaf35a5e40f9e029d0328e7",
+  "input_sha256": "0d411836a437a2b6e11faab405288097cb6d71b7471f53fceebb982e20ba3872",
+  "expected_sha256": "e38117aadd638b5f66f632e255bad0885ae9a9e69fdf321684ee40fe2440bc77",
   "platform": "macOS-12.7.6-x86_64-i386-64bit",
-  "words": 35267,
-  "matches": 13999,
-  "accuracy_A": 0.39694331811608585,
-  "wall_seconds_T": 14.127070810995065,
-  "peak_rss_mib": 83.73828125,
-  "correct_word_preservation": 0.8666666666666667,
-  "misspelling_accuracy": 0.39594225960445556,
+  "words": 2000,
+  "matches": 1828,
+  "accuracy_A": 0.914,
+  "wall_seconds_T": 1.1411399909993634,
+  "peak_rss_mib": 162.16015625,
+  "correct_word_preservation": 0.9575,
+  "misspelling_accuracy": 0.903125,
   "valid": true,
   "errors": [],
   "points": null,
   "mismatches_sample": [
     {
-      "input": "ab",
-      "expected": "albert",
-      "actual": "ab"
+      "input": "spund",
+      "expected": "spun",
+      "actual": "spend"
     },
     {
-      "input": "badcock",
-      "expected": "badcock's",
-      "actual": "back"
+      "input": "boaring",
+      "expected": "boring",
+      "actual": "bearing"
     },
     {
-      "input": "botuania",
-      "expected": "botswana",
-      "actual": "botuania"
+      "input": "priting",
+      "expected": "printing",
+      "actual": "priding"
     },
     {
-      "input": "canda",
-      "expected": "canada",
-      "actual": "candy"
+      "input": "discusted",
+      "expected": "disgusted",
+      "actual": "discussed"
     },
     {
-      "input": "chactuquoe",
-      "expected": "chautauqua",
-      "actual": "chactuquoe"
+      "input": "fluk",
+      "expected": "flux",
+      "actual": "fluke"
     },
     {
-      "input": "chalktwa",
-      "expected": "chautauqua",
-      "actual": "chalktwa"
+      "input": "dasy",
+      "expected": "daisy",
+      "actual": "days"
     },
     {
-      "input": "chaqua",
-      "expected": "chautauqua",
-      "actual": "cheque"
+      "input": "agg",
+      "expected": "egg",
+      "actual": "ag"
     },
     {
-      "input": "chata",
-      "expected": "chautauqua",
-      "actual": "chat"
+      "input": "towe",
+      "expected": "towel",
+      "actual": "tone"
     },
     {
-      "input": "chatacqua",
-      "expected": "chautauqua",
-      "actual": "chatacqua"
+      "input": "ctdr",
+      "expected": "ctr",
+      "actual": "cuter"
     },
     {
-      "input": "chatacque",
-      "expected": "chautauqua",
-      "actual": "chatacque"
+      "input": "thum",
+      "expected": "thumb",
+      "actual": "them"
     },
     {
-      "input": "chatalkwa",
-      "expected": "chautauqua",
-      "actual": "chatalkwa"
+      "input": "trumpe",
+      "expected": "trumpet",
+      "actual": "trump"
     },
     {
-      "input": "chataqua",
-      "expected": "chautauqua",
-      "actual": "chateau"
+      "input": "polute",
+      "expected": "pollute",
+      "actual": "polite"
     },
     {
-      "input": "chataque",
-      "expected": "chautauqua",
-      "actual": "chateau"
+      "input": "carret",
+      "expected": "carrot",
+      "actual": "caret"
     },
     {
-      "input": "chataukowa",
-      "expected": "chautauqua",
-      "actual": "chataukowa"
+      "input": "gasses",
+      "expected": "gases",
+      "actual": "gasses"
     },
     {
-      "input": "chataukwa",
-      "expected": "chautauqua",
-      "actual": "chataukwa"
+      "input": "kippur",
+      "expected": "kipper",
+      "actual": "kippur"
     },
     {
-      "input": "chatauwkwa",
-      "expected": "chautauqua",
-      "actual": "chatauwkwa"
+      "input": "resoved",
+      "expected": "resolved",
+      "actual": "removed"
     },
     {
-      "input": "chateau",
-      "expected": "chautauqua",
-      "actual": "chateau"
+      "input": "shortags",
+      "expected": "shortage",
+      "actual": "shortages"
     },
     {
-      "input": "chatocqua",
-      "expected": "chautauqua",
-      "actual": "chatocqua"
+      "input": "porth",
+      "expected": "porch",
+      "actual": "port"
     },
     {
-      "input": "chatogua",
-      "expected": "chautauqua",
-      "actual": "chateau"
+      "input": "firtly",
+      "expected": "firstly",
+      "actual": "firmly"
     },
     {
-      "input": "chatoukouv",
-      "expected": "chautauqua",
-      "actual": "chatoukouv"
+      "input": "nitch",
+      "expected": "niche",
+      "actual": "notch"
     }
   ]
 }

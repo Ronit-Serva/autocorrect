@@ -13,6 +13,16 @@ int main() {
     assert(weighted_distance("garden", "garrden") < 1);
     assert(weighted_distance("can't", "cant") < 1);
     assert(phonetic("phone") == phonetic("fone"));
+    assert(contextual_phonetic("school") == contextual_phonetic("skool"));
+    assert(contextual_phonetic("action") == contextual_phonetic("akshun"));
+    assert(contextual_phonetic("thumb") == contextual_phonetic("thum"));
+    assert(contextual_phonetic("bad", true) != contextual_phonetic("pat", true));
+    // Position-restricted silent-letter rules must not fire within a word.
+    assert(weighted_distance("knit", "nit", .35, true, true) < .5);
+    assert(weighted_distance("acknit", "acnit", .35, true, true) >= .5);
+    assert(weighted_distance("lamb", "lam", .35, true, true) < .5);
+    assert(weighted_distance("lambent", "lament", .35, true, true) >= .5);
+    assert(weighted_distance("planet", "plnaet", .35) < weighted_distance("planet", "plnaet", .65));
     assert(phonetic(string(64, 'x')).size() <= MAX_WORD);
     assert(distance(phonetic(string(64, 'x')), phonetic(string(64, 'y'))) >= 0);
     assert(deletes("aaa", 2).size() == 3);

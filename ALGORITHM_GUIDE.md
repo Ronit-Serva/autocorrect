@@ -1,9 +1,23 @@
 # Autocorrect implementation guide for coding agents
 
-This document describes the implementation currently present in this checkout,
+This document describes the implementation after the accuracy iteration campaign,
 with extra detail on its hand-written phonetic encoding. It is intended as a map
 for controlled algorithm experiments. Read it alongside `src/autocorrect.cpp`;
 the source is authoritative if this document and the code ever differ.
+
+## Current measured result and configuration
+
+The shipped default scores **1,828/2,000 (91.40%)** on the supplied hackathon set
+and **14,412/35,267 (40.865%)** on Birkbeck, compared with original scores of
+72.60% and 39.694%. These datasets were repeatedly inspected during development;
+these are tuned development measurements, not held-out accuracy. The 99% target
+has not been reached. See `ITERATION_REPORT.md` and
+`results/iterations/summary.json` for all measured variants.
+
+The default uses 161,847 dictionary entries, the contextual sound encoder,
+conservative inflection weights, and the ranking configuration below. Known
+words remain unchanged. Experimental modes are optional and must be measured
+before enabling them. The source is authoritative for option defaults.
 
 ## Project at a glance
 
@@ -37,7 +51,8 @@ to its output require rebuilding `data/index.bin`.
 
 ### Exact behavior
 
-The current encoder applies these operations, in order:
+The underlying `phonetic()` encoder applies these operations, in order. The
+default first applies the contextual rewrites described just after this table:
 
 1. **Initial silent-letter cleanup.** If the first two letters are `kn`, `gn`,
    `pn`, `wr`, or `ps`, drop the first letter. Examples: `knight` starts as
@@ -76,6 +91,20 @@ Examples useful for orientation:
 
 This is a useful reminder that the local rules do not model overlapping
 digraphs such as `sch` as a single pronunciation unit.
+
+### Default contextual wrapper and experimental finer encoding
+
+`contextual_phonetic()` rewrites `sch -> sk`, `tion/sion/cian -> shn`,
+`tch -> ch`, `dge/dgi/dgy -> j`, and `igh -> i` before calling `phonetic()`.
+It handles terminal `mb -> m`, terminal `gn -> n`, and `chr/chl -> kr/kl`.
+Thus the shipped encoder maps `school` and `skool` to `SKL`; the low-level
+legacy encoder alone produces the `SXL` key shown above for `school`.
+
+The experimental refined encoder additionally preserves initial vowel identity
+and distinguishes voiced consonants (`b/p`, `d/t`, `v/f`, `z/s`, hard `g/k`).
+It did not improve the selected final combination. It is retained as
+`--build-index-refined` for controlled comparisons, not enabled by default.
+These encoders are custom implementations, not Double Metaphone.
 
 ### Using phonetic keys for retrieval
 
@@ -156,32 +185,39 @@ deterministic lookup; the word strings are used for all final comparisons.
   deletion, substitution, and adjacent transposition each cost 1. It is used as
   a hard filter and shown as `edits` by `--explain`.
 - `distance(phoneA, phoneB)` applies the same metric to encoded sound keys. This
-  result is displayed as `sound_edits` and contributes `0.28 * sound_edits` to
+  result is displayed as `sound_edits` and contributes `0.15 * sound_edits` to
   ranking.
 - `weighted_distance()` is a dynamic program over the full input and candidate.
-  It makes apostrophe insertion/deletion cost 0.35, repeated-letter
-  insertion/deletion cost 0.45, vowel insertion/deletion cost 0.8, and other
-  insertions/deletions cost 1. Substitution costs 0 for a same letter, 0.55
-  between vowels, 0.8 for neighboring QWERTY keys, and 1 otherwise. Adjacent
-  transposition costs 0.65.
+  With the default spelling costs, apostrophe insertion/deletion costs 0.35,
+  terminal `e` costs 0.45, other repeated letters cost 0.35, other vowels cost
+  0.8, and other letters cost 1. Substitution costs 0 for the same letter, 0.8
+  between vowels or neighboring QWERTY keys, and 1 otherwise. Adjacent
+  transposition costs 0.35. `--profile legacy` restores the original costs.
 - A table of bidirectional multi-character spelling/sound rules can add a
   lower-cost transition, including `ph/f`, `ck/k`, `qu/kw`, `c/k`, `c/s`,
   `g/j`, `tion/shun`, `sion/zhun`, `ture/cher`, `ee/i`, `oo/u`, `eau/o`,
   `ai/ay`, `ie/ei`, `ight/ite`, `dge/j`, and `tch/ch`. The dynamic program
   indexes candidate rules by the final characters, then checks the complete
-  suffix before applying them.
+  suffix before applying them. Extended rules cover silent initial `kn/n`,
+  `wr/r`, `wh/w`, final `mb/m`, `gn/n`, final `ey/y`, and general vowel/spelling
+  pairs `ght/t`, `ea/e`, `ea/ee`, `oa/o`, `ai/a`, `ou/u`, `au/o`, `ough/o`,
+  `y/i`, `ch/k`, `sc/s`. Rules carry initial/final restrictions and apply
+  bidirectionally. See `rules()` for every exact cost.
 
 The final lower-is-better score is:
 
 ```text
-weighted_distance(input, candidate)
-+ 0.28 * optimal_string_alignment(phonetic(input), phonetic(candidate))
-- 0.12 * log(1 + dictionary_weight(candidate))
+0.5 * weighted_distance(input, candidate)
++ 0.5 * optimal_string_alignment(input, candidate)
++ 0.15 * optimal_string_alignment(sound_key(input), sound_key(candidate))
+- 0.08 * log(1 + dictionary_weight(candidate))
++ 0.25 * (first characters differ)
++ 0.15 * (last characters differ)
 ```
 
 Ties break by larger raw dictionary weight and then alphabetical spelling.
-Weights are a fixed count heuristic from WordNet data, not modern corpus
-frequencies. The correction gate requires weighted cost at most
+Weights start from WordNet counts and are smoothed across inflections; they
+are not representative modern corpus frequencies. The correction gate requires weighted cost at most
 `min(3.2, 1.05 + 0.2 * input_length)` and either raw spelling distance at most
 two or a best-versus-second score margin of at least 0.12. For inputs up to
 three characters, candidates more than one raw edit away are filtered before
@@ -189,19 +225,29 @@ ranking. If no candidate qualifies, the input is preserved.
 
 ## Dictionary and generated index
 
-`data/words.tsv` contains sorted `word<TAB>positive_integer_weight` rows (85,030
-entries in the current build). `tools/prepare_data.py` creates this lexicon from
+`data/base-words.tsv` contains the original 85,030 sorted
+`word<TAB>positive_integer_weight` rows. `tools/prepare_data.py` creates that base from
 WordNet 3.0 lemmas, exception forms, and validated definition/example tokens,
-plus selected grammatical words and contractions. It does not use the Birkbeck
-misspelling pairs. The default weight is `1 + gloss token count + 10 * tagged
-sense count`. `data/provenance.json` records source and output hashes.
+plus selected grammatical words and contractions. It does not use benchmark
+pairs. The base weight is `1 + gloss token count + 10 * tagged sense count`.
+`tools/expand_lexicon.py` creates the final 161,847-entry `data/words.tsv`.
+It uses noun/verb/adjective POS membership, WordNet exception forms, and English
+inflection rules. Exception categories suppress conflicting regular forms;
+consonant doubling uses WordNet exceptions. Existing and generated form weights
+are at least 20% of the parent count, rounded with a minimum of one. Additional
+adverb/ability forms require independent Webster validation. Generated
+morphology can still overgenerate; it is not a complete English grammar.
+`data/provenance.json` records all selected options and source/output hashes;
+`data/base-provenance.json` describes the original dictionary.
 
 `./build.sh` compiles `src/autocorrect.cpp` as C++17, then calls the executable
-with `--build-index data/words.tsv data/index.bin`. The binary file starts with
-`ACIDX003`, entry/posting counts, then word lengths, weights, word bytes, and
+with `--build-index-enhanced data/words.tsv data/index.bin`. The binary file
+starts with `ACIDX004`, entry/posting counts, then word lengths, weights, word bytes, and
 the sorted spelling and sound posting arrays. Integer fields are serialized
 explicitly little-endian. Runtime validates the header, lengths, posting IDs,
-array ordering, and total file size before accepting the data.
+array ordering, and total file size before accepting the data. The loader
+also accepts legacy `ACIDX003` and refined `ACIDX005` files; the header selects
+the corresponding encoder, preventing a silent encoder/index mismatch.
 
 ## Data, evaluation, and reproducible iteration
 
@@ -253,7 +299,7 @@ exceptions from the development set.
    duplicate collapse, apostrophes, and maximum-length input.
 4. Change one mechanism at a time: encoder mapping, sound-key index strategy,
    candidate cap, edit/ranking feature, dictionary source, or confidence gate.
-   Avoid changing multiple coefficients and rules in one patch.
+   Label combinations explicitly and retain individual ablations.
 5. Rebuild the index after any encoder or dictionary change. Run unit and CLI
    tests, then measure Birkbeck and public-development datasets.
 6. Compare total exact accuracy and the clean/typo slices. Inspect mismatch
@@ -271,6 +317,39 @@ For an individual decision, run `./autocorrect --explain misspelling`. It prints
 the chosen correction, reason, and up to ten candidate rows with raw edit
 distance, sound-key distance, weighted cost, dictionary weight, and total score.
 
+## Experiment controls and failure analysis
+
+`--profile default` selects the shipped ranking; `--profile legacy` restores
+original ranking costs, not the original dictionary/encoder. Put the profile
+before overrides. Numeric controls are `--edit-weight`, `--sound-weight`,
+`--prior-weight`, `--boundary-weight`, `--suffix-weight`, and `--transpose-cost`.
+The edit weight blends raw OSA distance with weighted distance. Other switches
+are `--spelling-costs` / `--no-spelling-costs` and `--extended-rules` /
+`--no-extended-rules`. `--known-ratio N`, `--possessives`, and `--wide` are
+optional experiments. Known-word correction uses stricter edit, frequency-ratio,
+and score gates but still damaged hackathon clean-word preservation.
+
+`--wide` queries two-deletion sound keys and permits sound distance two for
+more distant spellings. Its added candidates still pass full-string checks.
+
+Use `--trace < input.txt` to emit decisions and all surviving candidates.
+`tools/analyze_failures.py` runs prediction first, then compares references in a
+separate process and classifies errors as missing vocabulary, preserved known
+word, retrieval/filter loss, ranking, or abstention. Reference files never enter
+the prediction executable or dictionary generator. The analysis also computes
+the upper bound imposed by identical inputs with different reference answers.
+
+```sh
+python3 tools/analyze_failures.py --input hackathon_test/input.txt \
+  --expected hackathon_test/expected.txt --report results/new-analysis.json
+```
+
+`tools/evaluate.py` accepts repeated `--program-arg=VALUE`, `--output PATH`,
+and `--all-errors`. Always record executable, dictionary, input and reference
+hashes alongside experiments. Historic iteration executables and indexes are
+kept under ignored `build/iterations/`; full outputs and JSON reports are under
+`results/iterations/`. The compact summary is included in the submission archive.
+
 ## Source map
 
 | Path | Role |
@@ -278,7 +357,10 @@ distance, sound-key distance, weighted cost, dictionary weight, and total score.
 | `src/autocorrect.cpp` | Encoder, indexes, edit distances, ranking, CLI |
 | `data/words.tsv` | Bundled vocabulary and count weights |
 | `data/provenance.json` | Lexicon sources and hashes |
-| `tools/prepare_data.py` | Rebuild normalized lexicon from supplied corpora |
+| `tools/expand_lexicon.py` | POS inflections, exception handling, weight smoothing |
+| `tools/analyze_failures.py` | Complete candidate-level error audit |
+| `tools/run_iterations.py` | Run explicit configurations on both datasets |
+| `tools/prepare_data.py` | Rebuild normalized base lexicon from supplied corpora |
 | `tools/split_birkbeck.py` | Convert Birkbeck grouped source to aligned pairs |
 | `tools/evaluate.py` | Accuracy/runtime/resource measurement |
 | `tools/make_synthetic.py` | Deterministic synthetic diagnostic generator |

@@ -49,6 +49,34 @@ class CLITest(unittest.TestCase):
         self.assertIn('plnaet -> planet', proc.stdout)
         self.assertIn('weighted_cost', proc.stdout)
 
+    def test_index_encoder_modes(self):
+        for mode in ('--build-index-enhanced', '--build-index-refined'):
+            index = self.directory / (mode + '.bin')
+            subprocess.run([str(EXE), mode, str(self.lexicon), str(index)], check=True, capture_output=True)
+            proc = self.run_cli('skool\nfonetik\n', '--index', str(index))
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout, 'school\nphonetic\n')
+
+    def test_numeric_option_validation(self):
+        for option, value in [('--edit-weight', 'nan'), ('--sound-weight', '-1'),
+                              ('--prior-weight', '2'), ('--transpose-cost', '.3oops'),
+                              ('--known-ratio', 'inf'), ('--profile', 'absent')]:
+            proc = self.run_cli('plnaet\n', option, value)
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertEqual(proc.stdout, '')
+
+    def test_transposition_option_does_not_change_prior(self):
+        proc = self.run_cli('', '--profile', 'legacy', '--prior-weight', '0',
+                            '--transpose-cost', '.35', '--explain', 'plnaet')
+        fields = next(line.split('\t') for line in proc.stdout.splitlines() if line.startswith('planet\t'))
+        self.assertAlmostEqual(float(fields[-1]), .35)
+
+    def test_trace_stream_keeps_decisions_explicit(self):
+        proc = self.run_cli('plnaet\ngarden\n', '--trace')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn('plnaet\tplanet\t', proc.stdout)
+        self.assertIn('garden\tgarden\tdictionary word: preserved', proc.stdout)
+
     def test_missing_and_corrupt_index_fail_on_stderr(self):
         for contents in (b'', b'ACIDX003' + b'\xff' * 20, self.index.read_bytes()[:-1]):
             broken = self.directory / 'broken.bin'

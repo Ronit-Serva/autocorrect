@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Measure exact-match accuracy and wall time, including process startup."""
 import argparse
+import hashlib
 import json
 import platform
 from pathlib import Path
@@ -17,6 +18,9 @@ def main():
     p.add_argument('--input', type=Path, required=True)
     p.add_argument('--expected', type=Path, required=True)
     p.add_argument('--executable', type=Path, default=Path('./autocorrect'))
+    p.add_argument('--program-arg', action='append', default=[], help='Repeat for each executable argument (use = for flags)')
+    p.add_argument('--output', type=Path, help='Save all predictions for error analysis')
+    p.add_argument('--all-errors', action='store_true', help='Include every mismatch in the JSON report')
     p.add_argument('--timeout', type=float, default=60)
     p.add_argument('--tmin', type=float, help='Fastest valid official run, if known')
     p.add_argument('--report', type=Path)
@@ -34,7 +38,7 @@ def main():
     with args.input.open('rb') as source, tempfile.TemporaryFile() as output:
         started = time.perf_counter()
         try:
-            proc = subprocess.run([str(args.executable.resolve())], stdin=source,
+            proc = subprocess.run([str(args.executable.resolve()), *args.program_arg], stdin=source,
                                   stdout=output, stderr=subprocess.PIPE, timeout=args.timeout)
             elapsed = time.perf_counter() - started
             if proc.returncode:
@@ -45,6 +49,9 @@ def main():
         output.seek(0)
         actual = output.read().decode('utf-8', errors='replace').splitlines()
     actual = [s.strip() for s in actual]
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text('\n'.join(actual) + '\n')
     if len(actual) != len(expected):
         errors.append(f'expected {len(expected)} output lines, got {len(actual)}')
     if any(not re.fullmatch("[a-z']+", w) for w in actual):
@@ -62,6 +69,10 @@ def main():
         return (sum(i < len(actual) and actual[i] == expected[i] for i in indices) / len(indices)) if indices else None
     report = {
         'dataset': args.label,
+        'command': [str(args.executable), *args.program_arg],
+        'executable_sha256': hashlib.sha256(args.executable.read_bytes()).hexdigest(),
+        'input_sha256': hashlib.sha256(args.input.read_bytes()).hexdigest(),
+        'expected_sha256': hashlib.sha256(args.expected.read_bytes()).hexdigest(),
         'platform': platform.platform(),
         'words': len(expected), 'matches': matches,
         'accuracy_A': matches / len(expected), 'wall_seconds_T': elapsed,
@@ -74,7 +85,7 @@ def main():
             {'input': a, 'expected': b, 'actual': actual[i] if i < len(actual) else None}
             for i, (a, b) in enumerate(zip(inputs, expected))
             if i >= len(actual) or actual[i] != b
-        ][:20]
+        ][:None if args.all_errors else 20]
     }
     if errors:
         report['points'] = 0

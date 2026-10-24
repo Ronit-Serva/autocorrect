@@ -9,12 +9,15 @@ import tarfile
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    files = [root / name for name in ('README.md', 'build.sh', 'test.sh')]
+    files = [root / name for name in ('README.md', 'ALGORITHM_GUIDE.md',
+                                     'ITERATION_REPORT.md', 'build.sh', 'test.sh')]
     for directory in ('src', 'tests', 'tools', 'results'):
         files.extend(p for p in (root / directory).rglob('*')
-                     if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
+                     if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'
+                     and ('iterations' not in p.parts or p.name == 'summary.json'))
     files.extend(root / 'data' / name for name in
-                 ('words.tsv', 'provenance.json', 'WORDNET-LICENSE.txt', 'WEBSTER-NOTICE.txt'))
+                 ('words.tsv', 'base-words.tsv', 'provenance.json', 'base-provenance.json',
+                  'WORDNET-LICENSE.txt', 'WEBSTER-NOTICE.txt'))
     target = root / 'dist/autocorrect-submission.tar.gz'
     target.parent.mkdir(exist_ok=True)
     with target.open('wb') as raw, gzip.GzipFile(filename='', fileobj=raw, mode='wb', mtime=0) as gz:

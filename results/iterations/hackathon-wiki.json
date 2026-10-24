@@ -1,0 +1,1806 @@
+{
+  "dataset": "inflections-wikipedia-ranks",
+  "command": [
+    "autocorrect",
+    "--index",
+    "build/iterations/wiki/index.bin"
+  ],
+  "platform": "macOS-12.7.6-x86_64-i386-64bit",
+  "words": 2000,
+  "matches": 1643,
+  "accuracy_A": 0.8215,
+  "wall_seconds_T": 1.0962843259912916,
+  "peak_rss_mib": 159.0859375,
+  "correct_word_preservation": 0.9575,
+  "misspelling_accuracy": 0.7875,
+  "valid": true,
+  "errors": [],
+  "points": null,
+  "mismatches_sample": [
+    {
+      "input": "bruse",
+      "expected": "bruise",
+      "actual": "brusa"
+    },
+    {
+      "input": "ivery",
+      "expected": "ivory",
+      "actual": "over"
+    },
+    {
+      "input": "pand",
+      "expected": "pond",
+      "actual": "and"
+    },
+    {
+      "input": "containants",
+      "expected": "contaminants",
+      "actual": "continents"
+    },
+    {
+      "input": "remarke",
+      "expected": "remark",
+      "actual": "remake"
+    },
+    {
+      "input": "spund",
+      "expected": "spun",
+      "actual": "spend"
+    },
+    {
+      "input": "boaring",
+      "expected": "boring",
+      "actual": "bearing"
+    },
+    {
+      "input": "raed",
+      "expected": "read",
+      "actual": "red"
+    },
+    {
+      "input": "priting",
+      "expected": "printing",
+      "actual": "writing"
+    },
+    {
+      "input": "nubers",
+      "expected": "numbers",
+      "actual": "bubers"
+    },
+    {
+      "input": "jub",
+      "expected": "job",
+      "actual": "jab"
+    },
+    {
+      "input": "vichor",
+      "expected": "victor",
+      "actual": "vicar"
+    },
+    {
+      "input": "wollen",
+      "expected": "woolen",
+      "actual": "woollen"
+    },
+    {
+      "input": "discusted",
+      "expected": "disgusted",
+      "actual": "discussed"
+    },
+    {
+      "input": "fluk",
+      "expected": "flux",
+      "actual": "flak"
+    },
+    {
+      "input": "dasy",
+      "expected": "daisy",
+      "actual": "days"
+    },
+    {
+      "input": "firey",
+      "expected": "fiery",
+      "actual": "free"
+    },
+    {
+      "input": "gravey",
+      "expected": "gravy",
+      "actual": "gravel"
+    },
+    {
+      "input": "roling",
+      "expected": "rolling",
+      "actual": "ruling"
+    },
+    {
+      "input": "agg",
+      "expected": "egg",
+      "actual": "age"
+    },
+    {
+      "input": "towe",
+      "expected": "towel",
+      "actual": "two"
+    },
+    {
+      "input": "ctdr",
+      "expected": "ctr",
+      "actual": "actor"
+    },
+    {
+      "input": "inke",
+      "expected": "ink",
+      "actual": "inka"
+    },
+    {
+      "input": "crim",
+      "expected": "crime",
+      "actual": "from"
+    },
+    {
+      "input": "axcept",
+      "expected": "accept",
+      "actual": "except"
+    },
+    {
+      "input": "boyes",
+      "expected": "boys",
+      "actual": "bayes"
+    },
+    {
+      "input": "speking",
+      "expected": "speaking",
+      "actual": "specking"
+    },
+    {
+      "input": "poney",
+      "expected": "pony",
+      "actual": "pone"
+    },
+    {
+      "input": "thum",
+      "expected": "thumb",
+      "actual": "them"
+    },
+    {
+      "input": "tarmaced",
+      "expected": "tarmacked",
+      "actual": "tarmaced"
+    },
+    {
+      "input": "trumpe",
+      "expected": "trumpet",
+      "actual": "trompe"
+    },
+    {
+      "input": "admiting",
+      "expected": "admitting",
+      "actual": "admiting"
+    },
+    {
+      "input": "stoped",
+      "expected": "stopped",
+      "actual": "stooped"
+    },
+    {
+      "input": "hok",
+      "expected": "hook",
+      "actual": "hock"
+    },
+    {
+      "input": "carret",
+      "expected": "carrot",
+      "actual": "caret"
+    },
+    {
+      "input": "wier",
+      "expected": "wire",
+      "actual": "were"
+    },
+    {
+      "input": "onkline",
+      "expected": "online",
+      "actual": "incline"
+    },
+    {
+      "input": "gasses",
+      "expected": "gases",
+      "actual": "gasses"
+    },
+    {
+      "input": "liason",
+      "expected": "liaison",
+      "actual": "season"
+    },
+    {
+      "input": "grils",
+      "expected": "girls",
+      "actual": "grills"
+    },
+    {
+      "input": "puting",
+      "expected": "putting",
+      "actual": "puting"
+    },
+    {
+      "input": "kippur",
+      "expected": "kipper",
+      "actual": "kippur"
+    },
+    {
+      "input": "examin",
+      "expected": "examine",
+      "actual": "examen"
+    },
+    {
+      "input": "bonet",
+      "expected": "bonnet",
+      "actual": "binet"
+    },
+    {
+      "input": "resoved",
+      "expected": "resolved",
+      "actual": "removed"
+    },
+    {
+      "input": "shortags",
+      "expected": "shortage",
+      "actual": "shortages"
+    },
+    {
+      "input": "porth",
+      "expected": "porch",
+      "actual": "perth"
+    },
+    {
+      "input": "firtly",
+      "expected": "firstly",
+      "actual": "firmly"
+    },
+    {
+      "input": "coard",
+      "expected": "cord",
+      "actual": "board"
+    },
+    {
+      "input": "nitch",
+      "expected": "niche",
+      "actual": "notch"
+    },
+    {
+      "input": "hab",
+      "expected": "had",
+      "actual": "has"
+    },
+    {
+      "input": "provid",
+      "expected": "provide",
+      "actual": "proved"
+    },
+    {
+      "input": "besh",
+      "expected": "best",
+      "actual": "bash"
+    },
+    {
+      "input": "go's",
+      "expected": "goes",
+      "actual": "goos"
+    },
+    {
+      "input": "luved",
+      "expected": "loved",
+      "actual": "lived"
+    },
+    {
+      "input": "shiping",
+      "expected": "shipping",
+      "actual": "shiping"
+    },
+    {
+      "input": "skold",
+      "expected": "scold",
+      "actual": "sold"
+    },
+    {
+      "input": "commerciasl",
+      "expected": "commercials",
+      "actual": "commercial"
+    },
+    {
+      "input": "applaus",
+      "expected": "applause",
+      "actual": "applies"
+    },
+    {
+      "input": "lovd",
+      "expected": "loved",
+      "actual": "lord"
+    },
+    {
+      "input": "wohle",
+      "expected": "whole",
+      "actual": "while"
+    },
+    {
+      "input": "nuse",
+      "expected": "nurse",
+      "actual": "use"
+    },
+    {
+      "input": "bosy",
+      "expected": "bossy",
+      "actual": "body"
+    },
+    {
+      "input": "plasing",
+      "expected": "pleasing",
+      "actual": "placing"
+    },
+    {
+      "input": "loades",
+      "expected": "loads",
+      "actual": "leads"
+    },
+    {
+      "input": "porson",
+      "expected": "person",
+      "actual": "parson"
+    },
+    {
+      "input": "conveyer",
+      "expected": "conveyor",
+      "actual": "conveyer"
+    },
+    {
+      "input": "firery",
+      "expected": "fiery",
+      "actual": "ferry"
+    },
+    {
+      "input": "sily",
+      "expected": "silly",
+      "actual": "solo"
+    },
+    {
+      "input": "chiar",
+      "expected": "chair",
+      "actual": "choir"
+    },
+    {
+      "input": "peped",
+      "expected": "peeped",
+      "actual": "piped"
+    },
+    {
+      "input": "seting",
+      "expected": "setting",
+      "actual": "seting"
+    },
+    {
+      "input": "lae",
+      "expected": "lay",
+      "actual": "law"
+    },
+    {
+      "input": "hearn",
+      "expected": "earn",
+      "actual": "her"
+    },
+    {
+      "input": "remarkq",
+      "expected": "remarks",
+      "actual": "remark"
+    },
+    {
+      "input": "hwole",
+      "expected": "whole",
+      "actual": "while"
+    },
+    {
+      "input": "serius",
+      "expected": "serious",
+      "actual": "series"
+    },
+    {
+      "input": "jym",
+      "expected": "gym",
+      "actual": "jam"
+    },
+    {
+      "input": "senour",
+      "expected": "senor",
+      "actual": "senior"
+    },
+    {
+      "input": "caroles",
+      "expected": "carols",
+      "actual": "carolus"
+    },
+    {
+      "input": "blvd",
+      "expected": "blvd",
+      "actual": "bled"
+    },
+    {
+      "input": "sumit",
+      "expected": "submit",
+      "actual": "summit"
+    },
+    {
+      "input": "troopa",
+      "expected": "troops",
+      "actual": "troop"
+    },
+    {
+      "input": "clsad",
+      "expected": "clad",
+      "actual": "closed"
+    },
+    {
+      "input": "begon",
+      "expected": "begun",
+      "actual": "began"
+    },
+    {
+      "input": "eployability",
+      "expected": "employability",
+      "actual": "eployability"
+    },
+    {
+      "input": "feble",
+      "expected": "feeble",
+      "actual": "fable"
+    },
+    {
+      "input": "aniety",
+      "expected": "anxiety",
+      "actual": "unity"
+    },
+    {
+      "input": "hassel",
+      "expected": "hassle",
+      "actual": "hassel"
+    },
+    {
+      "input": "nerer",
+      "expected": "nearer",
+      "actual": "near"
+    },
+    {
+      "input": "peopless",
+      "expected": "peoples",
+      "actual": "people"
+    },
+    {
+      "input": "raind",
+      "expected": "rained",
+      "actual": "round"
+    },
+    {
+      "input": "golers",
+      "expected": "golfers",
+      "actual": "gaolers"
+    },
+    {
+      "input": "fourty",
+      "expected": "forty",
+      "actual": "fourth"
+    },
+    {
+      "input": "fot",
+      "expected": "foot",
+      "actual": "for"
+    },
+    {
+      "input": "courd",
+      "expected": "cord",
+      "actual": "court"
+    },
+    {
+      "input": "moin",
+      "expected": "moan",
+      "actual": "main"
+    },
+    {
+      "input": "garther",
+      "expected": "gather",
+      "actual": "further"
+    },
+    {
+      "input": "omniverously",
+      "expected": "omnivorously",
+      "actual": "omnivorous"
+    },
+    {
+      "input": "adrker",
+      "expected": "darker",
+      "actual": "yorker"
+    },
+    {
+      "input": "acks",
+      "expected": "acts",
+      "actual": "accs"
+    },
+    {
+      "input": "courst",
+      "expected": "court",
+      "actual": "courts"
+    },
+    {
+      "input": "complextion",
+      "expected": "complexion",
+      "actual": "completion"
+    },
+    {
+      "input": "strengh",
+      "expected": "strength",
+      "actual": "string"
+    },
+    {
+      "input": "moen",
+      "expected": "moan",
+      "actual": "men"
+    },
+    {
+      "input": "hotpline",
+      "expected": "hotline",
+      "actual": "hipline"
+    },
+    {
+      "input": "selter",
+      "expected": "shelter",
+      "actual": "salter"
+    },
+    {
+      "input": "sch",
+      "expected": "sch",
+      "actual": "such"
+    },
+    {
+      "input": "whimp",
+      "expected": "wimp",
+      "actual": "whomp"
+    },
+    {
+      "input": "concive",
+      "expected": "conceive",
+      "actual": "concave"
+    },
+    {
+      "input": "anter",
+      "expected": "enter",
+      "actual": "inter"
+    },
+    {
+      "input": "spad",
+      "expected": "spade",
+      "actual": "speed"
+    },
+    {
+      "input": "cerve",
+      "expected": "curve",
+      "actual": "serve"
+    },
+    {
+      "input": "transfering",
+      "expected": "transferring",
+      "actual": "transfering"
+    },
+    {
+      "input": "harde",
+      "expected": "hard",
+      "actual": "horde"
+    },
+    {
+      "input": "outhers",
+      "expected": "others",
+      "actual": "authors"
+    },
+    {
+      "input": "donky",
+      "expected": "donkey",
+      "actual": "dinky"
+    },
+    {
+      "input": "borrowd",
+      "expected": "borrowed",
+      "actual": "borrows"
+    },
+    {
+      "input": "miniute",
+      "expected": "minute",
+      "actual": "miniate"
+    },
+    {
+      "input": "ave",
+      "expected": "ave",
+      "actual": "are"
+    },
+    {
+      "input": "chear",
+      "expected": "cheer",
+      "actual": "shear"
+    },
+    {
+      "input": "motle",
+      "expected": "motel",
+      "actual": "motile"
+    },
+    {
+      "input": "controling",
+      "expected": "controlling",
+      "actual": "controling"
+    },
+    {
+      "input": "starst",
+      "expected": "starts",
+      "actual": "stars"
+    },
+    {
+      "input": "foo",
+      "expected": "foo",
+      "actual": "for"
+    },
+    {
+      "input": "buisy",
+      "expected": "busy",
+      "actual": "boise"
+    },
+    {
+      "input": "sonner",
+      "expected": "sooner",
+      "actual": "sinner"
+    },
+    {
+      "input": "submite",
+      "expected": "submit",
+      "actual": "submits"
+    },
+    {
+      "input": "overdosf",
+      "expected": "overdose",
+      "actual": "overdos"
+    },
+    {
+      "input": "mattres",
+      "expected": "mattress",
+      "actual": "metres"
+    },
+    {
+      "input": "comando",
+      "expected": "commando",
+      "actual": "command"
+    },
+    {
+      "input": "esy",
+      "expected": "easy",
+      "actual": "ese"
+    },
+    {
+      "input": "lnae",
+      "expected": "lane",
+      "actual": "line"
+    },
+    {
+      "input": "siley",
+      "expected": "silly",
+      "actual": "sale"
+    },
+    {
+      "input": "constaints",
+      "expected": "constraints",
+      "actual": "constants"
+    },
+    {
+      "input": "idear",
+      "expected": "idea",
+      "actual": "ideal"
+    },
+    {
+      "input": "recate",
+      "expected": "relate",
+      "actual": "recite"
+    },
+    {
+      "input": "lage",
+      "expected": "large",
+      "actual": "late"
+    },
+    {
+      "input": "spliters",
+      "expected": "splinters",
+      "actual": "splitters"
+    },
+    {
+      "input": "androgeny",
+      "expected": "androgyny",
+      "actual": "androgeny"
+    },
+    {
+      "input": "danse",
+      "expected": "dance",
+      "actual": "dense"
+    },
+    {
+      "input": "marketting",
+      "expected": "marketing",
+      "actual": "marketting"
+    },
+    {
+      "input": "mssing",
+      "expected": "missing",
+      "actual": "massing"
+    },
+    {
+      "input": "raing",
+      "expected": "rang",
+      "actual": "ruing"
+    },
+    {
+      "input": "futs",
+      "expected": "guts",
+      "actual": "fats"
+    },
+    {
+      "input": "draculla's",
+      "expected": "dracula's",
+      "actual": "draculas"
+    },
+    {
+      "input": "frocking",
+      "expected": "rocking",
+      "actual": "frocking"
+    },
+    {
+      "input": "movei",
+      "expected": "movie",
+      "actual": "moved"
+    },
+    {
+      "input": "beame",
+      "expected": "beam",
+      "actual": "became"
+    },
+    {
+      "input": "vol",
+      "expected": "vol",
+      "actual": "viol"
+    },
+    {
+      "input": "runnig",
+      "expected": "running",
+      "actual": "runing"
+    },
+    {
+      "input": "idae",
+      "expected": "idea",
+      "actual": "day"
+    },
+    {
+      "input": "moi",
+      "expected": "moi",
+      "actual": "mei"
+    },
+    {
+      "input": "redecoraton",
+      "expected": "redecoration",
+      "actual": "redecorate"
+    },
+    {
+      "input": "ivtae",
+      "expected": "vitae",
+      "actual": "ovate"
+    },
+    {
+      "input": "windous",
+      "expected": "windows",
+      "actual": "windaus"
+    },
+    {
+      "input": "lim",
+      "expected": "limb",
+      "actual": "lam"
+    },
+    {
+      "input": "untimate",
+      "expected": "ultimate",
+      "actual": "intimate"
+    },
+    {
+      "input": "starte",
+      "expected": "start",
+      "actual": "started"
+    },
+    {
+      "input": "tast",
+      "expected": "taste",
+      "actual": "east"
+    },
+    {
+      "input": "fearring",
+      "expected": "earring",
+      "actual": "fearing"
+    },
+    {
+      "input": "groul",
+      "expected": "growl",
+      "actual": "group"
+    },
+    {
+      "input": "obviousl",
+      "expected": "obvious",
+      "actual": "obviously"
+    },
+    {
+      "input": "adv",
+      "expected": "adv",
+      "actual": "zdv"
+    },
+    {
+      "input": "roon",
+      "expected": "room",
+      "actual": "on"
+    },
+    {
+      "input": "hdyro",
+      "expected": "hydro",
+      "actual": "hydra"
+    },
+    {
+      "input": "eyey",
+      "expected": "eyes",
+      "actual": "eye"
+    },
+    {
+      "input": "hrd",
+      "expected": "hard",
+      "actual": "had"
+    },
+    {
+      "input": "stilus",
+      "expected": "stylus",
+      "actual": "styles"
+    },
+    {
+      "input": "normall",
+      "expected": "normal",
+      "actual": "normally"
+    },
+    {
+      "input": "def",
+      "expected": "def",
+      "actual": "deaf"
+    },
+    {
+      "input": "acept",
+      "expected": "accept",
+      "actual": "adept"
+    },
+    {
+      "input": "sfal",
+      "expected": "seal",
+      "actual": "small"
+    },
+    {
+      "input": "ern",
+      "expected": "earn",
+      "actual": "ern"
+    },
+    {
+      "input": "exteds",
+      "expected": "extends",
+      "actual": "exceeds"
+    },
+    {
+      "input": "gass",
+      "expected": "gas",
+      "actual": "gases"
+    },
+    {
+      "input": "feable",
+      "expected": "feeble",
+      "actual": "fable"
+    },
+    {
+      "input": "woodes",
+      "expected": "woods",
+      "actual": "wooded"
+    },
+    {
+      "input": "smil",
+      "expected": "smile",
+      "actual": "small"
+    },
+    {
+      "input": "dunno",
+      "expected": "dunno",
+      "actual": "donne"
+    },
+    {
+      "input": "saling",
+      "expected": "sailing",
+      "actual": "selling"
+    },
+    {
+      "input": "studing",
+      "expected": "studying",
+      "actual": "studing"
+    },
+    {
+      "input": "ytidy",
+      "expected": "tidy",
+      "actual": "study"
+    },
+    {
+      "input": "skiy",
+      "expected": "sky",
+      "actual": "ski"
+    },
+    {
+      "input": "faol",
+      "expected": "fool",
+      "actual": "fuel"
+    },
+    {
+      "input": "horeses",
+      "expected": "horses",
+      "actual": "horuses"
+    },
+    {
+      "input": "cyress",
+      "expected": "cypress",
+      "actual": "ceres"
+    },
+    {
+      "input": "brom",
+      "expected": "broom",
+      "actual": "from"
+    },
+    {
+      "input": "diad",
+      "expected": "died",
+      "actual": "dead"
+    },
+    {
+      "input": "propotions",
+      "expected": "proportions",
+      "actual": "promotions"
+    },
+    {
+      "input": "scin",
+      "expected": "skin",
+      "actual": "scion"
+    },
+    {
+      "input": "dosen",
+      "expected": "dozen",
+      "actual": "doses"
+    },
+    {
+      "input": "aprox",
+      "expected": "approx",
+      "actual": "prox"
+    },
+    {
+      "input": "botle",
+      "expected": "bottle",
+      "actual": "battle"
+    },
+    {
+      "input": "malcom",
+      "expected": "malcolm",
+      "actual": "malmo"
+    },
+    {
+      "input": "weel",
+      "expected": "wheel",
+      "actual": "weal"
+    },
+    {
+      "input": "stik",
+      "expected": "stick",
+      "actual": "stock"
+    },
+    {
+      "input": "phto",
+      "expected": "photo",
+      "actual": "fto"
+    },
+    {
+      "input": "gether",
+      "expected": "gather",
+      "actual": "other"
+    },
+    {
+      "input": "flatterring",
+      "expected": "flattering",
+      "actual": "flatterring"
+    },
+    {
+      "input": "mas",
+      "expected": "mas",
+      "actual": "mass"
+    },
+    {
+      "input": "bugy",
+      "expected": "buggy",
+      "actual": "bogy"
+    },
+    {
+      "input": "feare",
+      "expected": "fear",
+      "actual": "feared"
+    },
+    {
+      "input": "tage",
+      "expected": "tag",
+      "actual": "age"
+    },
+    {
+      "input": "biger",
+      "expected": "bigger",
+      "actual": "niger"
+    },
+    {
+      "input": "brath",
+      "expected": "breath",
+      "actual": "brith"
+    },
+    {
+      "input": "stans",
+      "expected": "stands",
+      "actual": "stars"
+    },
+    {
+      "input": "proceding",
+      "expected": "proceeding",
+      "actual": "preceding"
+    },
+    {
+      "input": "inury",
+      "expected": "injury",
+      "actual": "inure"
+    },
+    {
+      "input": "educ",
+      "expected": "educ",
+      "actual": "doc"
+    },
+    {
+      "input": "ridrs",
+      "expected": "rides",
+      "actual": "riders"
+    },
+    {
+      "input": "delecate",
+      "expected": "delicate",
+      "actual": "delegate"
+    },
+    {
+      "input": "phishing",
+      "expected": "phishing",
+      "actual": "fishing"
+    },
+    {
+      "input": "awile",
+      "expected": "awhile",
+      "actual": "agile"
+    },
+    {
+      "input": "tol",
+      "expected": "tool",
+      "actual": "toll"
+    },
+    {
+      "input": "compained",
+      "expected": "complained",
+      "actual": "companied"
+    },
+    {
+      "input": "windo",
+      "expected": "window",
+      "actual": "windy"
+    },
+    {
+      "input": "dicth",
+      "expected": "ditch",
+      "actual": "dutch"
+    },
+    {
+      "input": "faucte",
+      "expected": "faucet",
+      "actual": "facto"
+    },
+    {
+      "input": "hoove",
+      "expected": "hoover",
+      "actual": "hove"
+    },
+    {
+      "input": "vectore",
+      "expected": "vector",
+      "actual": "vectors"
+    },
+    {
+      "input": "studed",
+      "expected": "studied",
+      "actual": "studded"
+    },
+    {
+      "input": "illution",
+      "expected": "illusion",
+      "actual": "illation"
+    },
+    {
+      "input": "doog",
+      "expected": "dog",
+      "actual": "doc"
+    },
+    {
+      "input": "parst",
+      "expected": "past",
+      "actual": "parts"
+    },
+    {
+      "input": "winde",
+      "expected": "windy",
+      "actual": "winds"
+    },
+    {
+      "input": "verdit",
+      "expected": "verdict",
+      "actual": "verdi"
+    },
+    {
+      "input": "linnen",
+      "expected": "linen",
+      "actual": "linnean"
+    },
+    {
+      "input": "formulss",
+      "expected": "formulas",
+      "actual": "formals"
+    },
+    {
+      "input": "weding",
+      "expected": "wedding",
+      "actual": "weding"
+    },
+    {
+      "input": "reder",
+      "expected": "reader",
+      "actual": "refer"
+    },
+    {
+      "input": "climbe",
+      "expected": "climb",
+      "actual": "climbs"
+    },
+    {
+      "input": "weeke",
+      "expected": "week",
+      "actual": "were"
+    },
+    {
+      "input": "ultimatel",
+      "expected": "ultimate",
+      "actual": "ultimately"
+    },
+    {
+      "input": "toches",
+      "expected": "torches",
+      "actual": "taches"
+    },
+    {
+      "input": "spiter",
+      "expected": "spider",
+      "actual": "spitter"
+    },
+    {
+      "input": "valetta",
+      "expected": "valletta",
+      "actual": "valetta"
+    },
+    {
+      "input": "deside",
+      "expected": "decide",
+      "actual": "reside"
+    },
+    {
+      "input": "croups",
+      "expected": "groups",
+      "actual": "croups"
+    },
+    {
+      "input": "croud",
+      "expected": "crowd",
+      "actual": "crud"
+    },
+    {
+      "input": "senting",
+      "expected": "sending",
+      "actual": "setting"
+    },
+    {
+      "input": "promis",
+      "expected": "promise",
+      "actual": "primes"
+    },
+    {
+      "input": "gentelmen",
+      "expected": "gentlemen",
+      "actual": "gentleman"
+    },
+    {
+      "input": "targetted",
+      "expected": "targeted",
+      "actual": "targetted"
+    },
+    {
+      "input": "spiritous",
+      "expected": "spirituous",
+      "actual": "spiritous"
+    },
+    {
+      "input": "fassion",
+      "expected": "fashion",
+      "actual": "fission"
+    },
+    {
+      "input": "gymn",
+      "expected": "gym",
+      "actual": "hymn"
+    },
+    {
+      "input": "heven",
+      "expected": "heaven",
+      "actual": "haven"
+    },
+    {
+      "input": "aegue",
+      "expected": "argue",
+      "actual": "ague"
+    },
+    {
+      "input": "maches",
+      "expected": "matches",
+      "actual": "maches"
+    },
+    {
+      "input": "wdeli",
+      "expected": "deli",
+      "actual": "widely"
+    },
+    {
+      "input": "restaraunt",
+      "expected": "restaurant",
+      "actual": "restraint"
+    },
+    {
+      "input": "wintery",
+      "expected": "wintry",
+      "actual": "wintery"
+    },
+    {
+      "input": "gilty",
+      "expected": "guilty",
+      "actual": "gilt"
+    },
+    {
+      "input": "munday",
+      "expected": "monday",
+      "actual": "munda"
+    },
+    {
+      "input": "clim",
+      "expected": "climb",
+      "actual": "claim"
+    },
+    {
+      "input": "i'ld",
+      "expected": "i'd",
+      "actual": "old"
+    },
+    {
+      "input": "carring",
+      "expected": "carrying",
+      "actual": "caring"
+    },
+    {
+      "input": "silke",
+      "expected": "silk",
+      "actual": "silky"
+    },
+    {
+      "input": "bayts",
+      "expected": "bats",
+      "actual": "baits"
+    },
+    {
+      "input": "slavd",
+      "expected": "slave",
+      "actual": "slavs"
+    },
+    {
+      "input": "wanna",
+      "expected": "wanna",
+      "actual": "nanna"
+    },
+    {
+      "input": "acess",
+      "expected": "access",
+      "actual": "aces"
+    },
+    {
+      "input": "juicey",
+      "expected": "juicy",
+      "actual": "juice"
+    },
+    {
+      "input": "autum",
+      "expected": "autumn",
+      "actual": "atom"
+    },
+    {
+      "input": "buch",
+      "expected": "bush",
+      "actual": "such"
+    },
+    {
+      "input": "suife",
+      "expected": "suite",
+      "actual": "side"
+    },
+    {
+      "input": "gonne",
+      "expected": "gone",
+      "actual": "gonne"
+    },
+    {
+      "input": "drile",
+      "expected": "drill",
+      "actual": "drily"
+    },
+    {
+      "input": "linkae",
+      "expected": "linkage",
+      "actual": "lanka"
+    },
+    {
+      "input": "newsdire",
+      "expected": "newswire",
+      "actual": "newsier"
+    },
+    {
+      "input": "deposite",
+      "expected": "deposit",
+      "actual": "deposited"
+    },
+    {
+      "input": "goin",
+      "expected": "join",
+      "actual": "gain"
+    },
+    {
+      "input": "schold",
+      "expected": "scold",
+      "actual": "school"
+    },
+    {
+      "input": "bisy",
+      "expected": "busy",
+      "actual": "base"
+    },
+    {
+      "input": "retier",
+      "expected": "retire",
+      "actual": "reiter"
+    },
+    {
+      "input": "poff",
+      "expected": "puff",
+      "actual": "of"
+    },
+    {
+      "input": "classsy",
+      "expected": "classy",
+      "actual": "class"
+    },
+    {
+      "input": "hont",
+      "expected": "hunt",
+      "actual": "host"
+    },
+    {
+      "input": "picted",
+      "expected": "picked",
+      "actual": "posted"
+    },
+    {
+      "input": "cand",
+      "expected": "candy",
+      "actual": "and"
+    },
+    {
+      "input": "milfs",
+      "expected": "milfs",
+      "actual": "males"
+    },
+    {
+      "input": "collor",
+      "expected": "collar",
+      "actual": "color"
+    },
+    {
+      "input": "eenings",
+      "expected": "evenings",
+      "actual": "innings"
+    },
+    {
+      "input": "yeth",
+      "expected": "yet",
+      "actual": "with"
+    },
+    {
+      "input": "ynonyms",
+      "expected": "synonyms",
+      "actual": "anonyms"
+    },
+    {
+      "input": "cubcategories",
+      "expected": "subcategories",
+      "actual": "cubcategories"
+    },
+    {
+      "input": "bottel",
+      "expected": "bottle",
+      "actual": "battle"
+    },
+    {
+      "input": "tourn",
+      "expected": "torn",
+      "actual": "tour"
+    },
+    {
+      "input": "advantageos",
+      "expected": "advantageous",
+      "actual": "advantages"
+    },
+    {
+      "input": "sarifice",
+      "expected": "sacrifice",
+      "actual": "sarifice"
+    },
+    {
+      "input": "staing",
+      "expected": "staying",
+      "actual": "stating"
+    },
+    {
+      "input": "jucy",
+      "expected": "juicy",
+      "actual": "july"
+    },
+    {
+      "input": "sheter",
+      "expected": "shelter",
+      "actual": "shutter"
+    },
+    {
+      "input": "deid",
+      "expected": "died",
+      "actual": "dead"
+    },
+    {
+      "input": "rof",
+      "expected": "roof",
+      "actual": "of"
+    },
+    {
+      "input": "popup",
+      "expected": "popup",
+      "actual": "papua"
+    },
+    {
+      "input": "trik",
+      "expected": "trick",
+      "actual": "track"
+    },
+    {
+      "input": "exhalted",
+      "expected": "exalted",
+      "actual": "exhaled"
+    },
+    {
+      "input": "eveing",
+      "expected": "evening",
+      "actual": "evenning"
+    },
+    {
+      "input": "scip",
+      "expected": "skip",
+      "actual": "ship"
+    },
+    {
+      "input": "overcrowed",
+      "expected": "overcrowded",
+      "actual": "overcrowd"
+    },
+    {
+      "input": "liy",
+      "expected": "lie",
+      "actual": "lay"
+    },
+    {
+      "input": "thinging",
+      "expected": "thinking",
+      "actual": "tinging"
+    },
+    {
+      "input": "matress",
+      "expected": "mattress",
+      "actual": "metres"
+    },
+    {
+      "input": "wisper",
+      "expected": "whisper",
+      "actual": "wispier"
+    },
+    {
+      "input": "millepede",
+      "expected": "millipede",
+      "actual": "millepede"
+    },
+    {
+      "input": "countin",
+      "expected": "counting",
+      "actual": "county"
+    },
+    {
+      "input": "crach",
+      "expected": "crash",
+      "actual": "coach"
+    },
+    {
+      "input": "newsgrlup",
+      "expected": "newsgroup",
+      "actual": "newsgrlup"
+    },
+    {
+      "input": "hering",
+      "expected": "hearing",
+      "actual": "herring"
+    },
+    {
+      "input": "scince",
+      "expected": "since",
+      "actual": "science"
+    },
+    {
+      "input": "subas",
+      "expected": "subs",
+      "actual": "sabas"
+    },
+    {
+      "input": "iyes",
+      "expected": "eyes",
+      "actual": "is"
+    },
+    {
+      "input": "studiing",
+      "expected": "studying",
+      "actual": "studing"
+    },
+    {
+      "input": "cir",
+      "expected": "cir",
+      "actual": "air"
+    },
+    {
+      "input": "reveng",
+      "expected": "revenge",
+      "actual": "reving"
+    },
+    {
+      "input": "eaghty",
+      "expected": "eighty",
+      "actual": "eight"
+    },
+    {
+      "input": "sheperd",
+      "expected": "shepherd",
+      "actual": "shepard"
+    },
+    {
+      "input": "nin",
+      "expected": "nine",
+      "actual": "non"
+    },
+    {
+      "input": "yot",
+      "expected": "yacht",
+      "actual": "yat"
+    },
+    {
+      "input": "expresso",
+      "expected": "espresso",
+      "actual": "express"
+    },
+    {
+      "input": "gnt",
+      "expected": "got",
+      "actual": "gnat"
+    },
+    {
+      "input": "doxen",
+      "expected": "dozen",
+      "actual": "dioxin"
+    },
+    {
+      "input": "exorted",
+      "expected": "exhorted",
+      "actual": "exerted"
+    },
+    {
+      "input": "commiting",
+      "expected": "committing",
+      "actual": "commiting"
+    },
+    {
+      "input": "yat",
+      "expected": "yet",
+      "actual": "yat"
+    },
+    {
+      "input": "confedence",
+      "expected": "confidence",
+      "actual": "conference"
+    },
+    {
+      "input": "johnes",
+      "expected": "jones",
+      "actual": "johns"
+    },
+    {
+      "input": "gase",
+      "expected": "gas",
+      "actual": "base"
+    },
+    {
+      "input": "percon",
+      "expected": "person",
+      "actual": "peron"
+    },
+    {
+      "input": "fithy",
+      "expected": "filthy",
+      "actual": "with"
+    },
+    {
+      "input": "streach",
+      "expected": "stretch",
+      "actual": "streak"
+    },
+    {
+      "input": "leged",
+      "expected": "legged",
+      "actual": "luged"
+    },
+    {
+      "input": "lossing",
+      "expected": "losing",
+      "actual": "lessing"
+    },
+    {
+      "input": "vodoo",
+      "expected": "voodoo",
+      "actual": "video"
+    },
+    {
+      "input": "montor",
+      "expected": "monitor",
+      "actual": "mentor"
+    },
+    {
+      "input": "indisputibly",
+      "expected": "indisputably",
+      "actual": "indisputable"
+    },
+    {
+      "input": "parm",
+      "expected": "palm",
+      "actual": "park"
+    },
+    {
+      "input": "llows",
+      "expected": "allows",
+      "actual": "laws"
+    },
+    {
+      "input": "grep",
+      "expected": "grep",
+      "actual": "group"
+    },
+    {
+      "input": "croun",
+      "expected": "crown",
+      "actual": "crohn"
+    },
+    {
+      "input": "biologica",
+      "expected": "biological",
+      "actual": "biologic"
+    },
+    {
+      "input": "obay",
+      "expected": "obey",
+      "actual": "bay"
+    },
+    {
+      "input": "apurs",
+      "expected": "spurs",
+      "actual": "apars"
+    },
+    {
+      "input": "snd",
+      "expected": "send",
+      "actual": "and"
+    },
+    {
+      "input": "i'ed",
+      "expected": "i'd",
+      "actual": "ied"
+    },
+    {
+      "input": "couons",
+      "expected": "coupons",
+      "actual": "coins"
+    },
+    {
+      "input": "neeless",
+      "expected": "needless",
+      "actual": "niles"
+    },
+    {
+      "input": "momentus",
+      "expected": "momentous",
+      "actual": "momentum"
+    },
+    {
+      "input": "meen",
+      "expected": "mean",
+      "actual": "men"
+    },
+    {
+      "input": "runing",
+      "expected": "running",
+      "actual": "runing"
+    },
+    {
+      "input": "kjnee",
+      "expected": "knee",
+      "actual": "kine"
+    },
+    {
+      "input": "towl",
+      "expected": "towel",
+      "actual": "town"
+    },
+    {
+      "input": "fant",
+      "expected": "faint",
+      "actual": "font"
+    },
+    {
+      "input": "cept",
+      "expected": "kept",
+      "actual": "sept"
+    },
+    {
+      "input": "nobbly",
+      "expected": "knobbly",
+      "actual": "nobly"
+    }
+  ]
+}
